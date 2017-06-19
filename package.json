@@ -1,0 +1,31 @@
+{
+  "name": "jubi-monitor",
+  "version": "0.0.1",
+  "description": "jubi monitor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/netssfy/jubi-monitor.git"
+  },
+  "keywords": [
+    "jubi",
+    "nodejs"
+  ],
+  "author": "sfy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/netssfy/jubi-monitor/issues"
+  },
+  "homepage": "https://github.com/netssfy/jubi-monitor#readme",
+  "dependencies": {
+    "config": "^1.26.1",
+    "koa": "^2.2.0",
+    "lodash": "^4.17.4",
+    "mongoose": "^4.10.7",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1"
+  }
+}
