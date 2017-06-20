@@ -39,16 +39,16 @@ async function getOrders(coin) {
   return await request(apiServer + 'orders', { method: 'post', body: params, json: true });
 }
 
-async function getAllTickers() {
+async function getAllTicks() {
   const params = {};
   _sign(params);
 
-  return await request(apiServer + 'orders', { method: 'post', body: params, json: true });
+  return await request(apiServer + 'allticker', { method: 'post', body: params, json: true });
 }
 
 module.exports = {
   getTicker,
   getDepth,
   getOrders,
-  getAllTickers
+  getAllTicks
 };

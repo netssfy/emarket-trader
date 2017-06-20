@@ -4,10 +4,17 @@ const config = require('config');
 const path = require('path');
 const fs = require('fs');
 const _ = require('lodash');
+const eventManager = require('./events/event-manager');
 
 async function main() {
   //connect db
   await initDB();
+
+  const tickEvent = eventManager.getTickEvent('jubi');
+  const depthEvent = eventManager.getDepthEvent('jubi');
+
+  tickEvent.on(data => { console.log(JSON.stringify(data)) });
+  depthEvent.on(data => { console.log(JSON.stringify(data)) });
   await initCollector();
 }
 
@@ -24,6 +31,8 @@ async function initDB() {
     for (let modelDefine of modelDefineList) {
       let model = sequelize.define(modelDefine.name, modelDefine.schema, { indexes: modelDefine.indexes });
       await model.sync();
+
+      _.set(Sequelize, `models.${modelDefine.name}`, model);
       console.log(`sync ${modelDefine.name} done`);
     }
   }

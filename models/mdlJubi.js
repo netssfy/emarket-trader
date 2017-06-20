@@ -4,7 +4,7 @@ const Sequelize = require('sequelize');
 
 module.exports = [
   {
-    name: 'jubiTick',
+    name: 'JubiTick',
     schema: {
       name: Sequelize.STRING,
       timestamp: Sequelize.INTEGER,
@@ -21,7 +21,7 @@ module.exports = [
     }]
   },
   {
-    name: 'jubiDepth',
+    name: 'JubiDepth',
     schema: {
       name: Sequelize.STRING,
       tiemstamp: Sequelize.INTEGER,
@@ -30,7 +30,7 @@ module.exports = [
     }
   },
   {
-    name: 'jubiOrders',
+    name: 'JubiOrders',
     schema: {
       tid: { type: Sequelize.STRING, primaryKey: true },
       timestamp: Sequelize.INTEGER,
