@@ -18,8 +18,16 @@ async function start() {
   //get all coin ticks every second
   const job1 = CronJob('0-59 * * * * *', async function() {
     const ticks = await api.getAllTicks();
+    //{ coin1: {}, coin2: {}}
+    const newTickRows = [];
+    for (let coin in ticks) {
+      let tick = ticks[coin];
+      let row = _createRowFromJSON(coin, tick);
+      newTickRows.push(row);
+    }
 
-    tickEvent.emit(ticks);
+    await TickModel.bulkCreate(newTickRows);
+    tickEvent.emit(newTickRows);
   }, false);
   
   //get all coin depth every second
@@ -56,3 +64,19 @@ async function start() {
 module.exports = {
   start
 };
+
+function _createRowFromJSON(coin, tick) {
+  const row = {
+    name: coin,
+    timestamp: Date.now(),
+    high: tick.high,
+    low: tick.low,
+    buy: tick.buy,
+    sell: tick.sell,
+    last: tick.last,
+    amount: tick.vol,
+    volume: tick.volume
+  }
+
+  return row;
+}

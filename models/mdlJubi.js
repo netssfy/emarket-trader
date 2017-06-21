@@ -7,16 +7,16 @@ module.exports = [
     name: 'JubiTick',
     schema: {
       name: Sequelize.STRING,
-      timestamp: Sequelize.INTEGER,
+      timestamp: Sequelize.BIGINT(13),
       high: Sequelize.DECIMAL(20, 10),
       buy: Sequelize.DECIMAL(20, 10),
       sell: Sequelize.DECIMAL(20, 10),
       last:  Sequelize.DECIMAL(20, 10),
-      amount: Sequelize.DECIMAL(20, 10),
+      amount: Sequelize.DECIMAL(30, 10),
       volume: Sequelize.DECIMAL(20, 10)
     },
     indexes: [{
-      unique: true,
+      unique: false,
       fields: ['name', 'timestamp']
     }]
   },
@@ -24,7 +24,7 @@ module.exports = [
     name: 'JubiDepth',
     schema: {
       name: Sequelize.STRING,
-      tiemstamp: Sequelize.INTEGER,
+      tiemstamp: Sequelize.BIGINT(13),
       asks: Sequelize.TEXT,
       bids: Sequelize.TEXT
     }
@@ -33,9 +33,9 @@ module.exports = [
     name: 'JubiOrders',
     schema: {
       tid: { type: Sequelize.STRING, primaryKey: true },
-      timestamp: Sequelize.INTEGER,
+      timestamp: Sequelize.BIGINT(13),
       price: Sequelize.DECIMAL(20, 10),
-      amount: Sequelize.DECIMAL(20, 10),
+      amount: Sequelize.DECIMAL(30, 10),
       type: Sequelize.STRING
     }
   }
