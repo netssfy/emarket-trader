@@ -21,13 +21,17 @@
   },
   "homepage": "https://github.com/netssfy/jubi-monitor#readme",
   "dependencies": {
+    "angular": "^1.6.4",
+    "bootstrap": "^3.3.7",
     "config": "^1.26.1",
+    "jquery": "^3.2.1",
     "koa": "^2.2.0",
     "lodash": "^4.17.4",
     "mysql2": "^1.3.5",
     "node-cron": "^1.2.0",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
-    "sequelize": "^4.1.0"
+    "sequelize": "^4.1.0",
+    "socket.io": "^2.0.3"
   }
 }

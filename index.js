@@ -16,6 +16,8 @@ async function main() {
   tickEvent.on(data => { console.log(JSON.stringify(data)) });
   depthEvent.on(data => { console.log(JSON.stringify(data)) });
   await initCollector();
+
+  await initSocketServer();
 }
 
 async function initDB() {
@@ -46,6 +48,19 @@ async function initCollector() {
     console.log(`start collector ${moduleName}`)
     collector.start();
   }
+}
+
+async function initSocketServer() {
+  const appConfig = config.app;
+  const server = require('http').createServer();
+
+  server.listen(appConfig.port);
+
+  const io = require('socket.io')(server);
+  io.on('connection', socket => {
+    console.log('client connect in');
+    socket.emit('news', { hello: 'world' });
+  });
 }
 
 main();

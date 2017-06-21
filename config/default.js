@@ -1,6 +1,9 @@
 'use strict';
 
 module.exports = {
+  app: {
+    port: 1699
+  },
   storage: {
     mysql: {
       database: 'emarket-trader',

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="app">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Trader</title>
+
+  <script src="js/socket.io.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/angular.min.js"></script>
+  <script src="js/app.js"></script>
+
+  <link href="css/bootstrap.min.css" rel="stylesheet"></link>
+</head>
+<body ng-controller="mainCtrl">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>name</th>
+        <th ng-repeat="index in indice">{{index}}</th>
+      </tr>
+    </thead>
+    <tr ng-repeat="(coin, data) in dataFrame track by $index" ng-class="['active', 'success', 'warning', 'danger', 'info'][$index%5]">
+      <td>{{coin}}</td>
+      <td ng-repeat="(index, value) in data">{{value}}</td>
+    </tr>
+  </table>
+</body>
+</html>
