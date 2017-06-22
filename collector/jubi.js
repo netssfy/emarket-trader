@@ -16,7 +16,8 @@ async function start() {
 
   const TickModel = Sequelize.models.JubiTick;
   //get all coin ticks every second
-  const job1 = CronJob('0-59 * * * * *', async function() {
+  const job1 = CronJob('0-59/5 * * * * *', async function() {
+    console.log('collecting jubi ticks');
     const ticks = await api.getAllTicks();
     //{ coin1: {}, coin2: {}}
     const newTickRows = [];
@@ -32,6 +33,7 @@ async function start() {
   
   //get all coin depth every second
   const job2 = CronJob('0-59 * * * * *', async function() {
+    console.log('collecting jubi depth');
     const awaitList = [];
     for (let name of coinNames) {
       awaitList.push(api.getDepth(name));
@@ -45,6 +47,7 @@ async function start() {
   
   //get all coin orders every second
   const job3 = CronJob('0-59 * * * * *', async function() {
+    console.log('collecting jubi orders');
     const awaitList = [];
     for (let name of coinNames) {
       awaitList.push(api.getOrders(name));

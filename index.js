@@ -7,16 +7,8 @@ const _ = require('lodash');
 const eventManager = require('./events/event-manager');
 
 async function main() {
-  //connect db
   await initDB();
-
-  const tickEvent = eventManager.getTickEvent('jubi');
-  const depthEvent = eventManager.getDepthEvent('jubi');
-
-  tickEvent.on(data => { console.log(JSON.stringify(data)) });
-  depthEvent.on(data => { console.log(JSON.stringify(data)) });
   await initCollector();
-
   await initSocketServer();
 }
 
@@ -53,13 +45,20 @@ async function initCollector() {
 async function initSocketServer() {
   const appConfig = config.app;
   const server = require('http').createServer();
+  const aggregator = require('./aggregator/jubi');
 
   server.listen(appConfig.port);
 
   const io = require('socket.io')(server);
   io.on('connection', socket => {
     console.log('client connect in');
-    socket.emit('news', { hello: 'world' });
+
+    const tickEvent = eventManager.getTickEvent('jubi');
+    
+    tickEvent.on(data => {
+      data = aggregator(data);
+      socket.emit('ticks', data);
+    });
   });
 }
 

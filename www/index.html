@@ -18,13 +18,11 @@
   <table class="table">
     <thead>
       <tr>
-        <th>name</th>
         <th ng-repeat="index in indice">{{index}}</th>
       </tr>
     </thead>
-    <tr ng-repeat="(coin, data) in dataFrame track by $index" ng-class="['active', 'success', 'warning', 'danger', 'info'][$index%5]">
-      <td>{{coin}}</td>
-      <td ng-repeat="(index, value) in data">{{value}}</td>
+    <tr ng-repeat="row in data track by $index" ng-class="['active', 'success', 'warning', 'danger', 'info'][$index%5]">
+      <td ng-repeat="(index, value) in row">{{value}}</td>
     </tr>
   </table>
 </body>
