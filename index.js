@@ -54,10 +54,16 @@ async function initSocketServer() {
     console.log('client connect in');
 
     const tickEvent = eventManager.getTickEvent('jubi');
-    
+
     tickEvent.on(data => {
-      data = aggregator(data);
+      data = aggregator('tick', data);
       socket.emit('ticks', data);
+    });
+    
+    const trendEvent = eventManager.getTrendEvent('jubi');
+    
+    trendEvent.on(data => {
+      aggregator('trend', data);
     });
   });
 }

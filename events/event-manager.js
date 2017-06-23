@@ -3,10 +3,12 @@
 const TickEvent = require('./tick-event');
 const DepthEvent = require('./depth-event');
 const OrderEvent = require('./order-event');
+const TrendEvent = require('./trend-event');
 
 const TICK_EVENT_KEY = 'TICK_EVENT_KEY';
 const DEPTH_EVENT_KEY = 'DEPTH_EVENT_KEY';
 const ORDER_EVENT_KEY = 'ORDER_EVENT_KEY';
+const TREND_EVENT_KEY = 'TREND_EVENT_KEY';
 
 class EventManager {
   constructor() {
@@ -40,6 +42,17 @@ class EventManager {
     let event = this.events.get(key);
     if (!event) {
       event = new OrderEvent(coin);
+      this.events.set(key, event);
+    }
+
+    return event; 
+  }
+
+  getTrendEvent(coin) {
+    const key = `${TREND_EVENT_KEY}-${coin}`;
+    let event = this.events.get(key);
+    if (!event) {
+      event = new TrendEvent(coin);
       this.events.set(key, event);
     }
 

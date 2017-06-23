@@ -13,10 +13,11 @@ async function start() {
   const tickEvent = eventManager.getTickEvent('jubi');
   const depthEvent = eventManager.getDepthEvent('jubi');
   const orderEvent = eventManager.getOrderEvent('jubi');
+  const trendEvent = eventManager.getTrendEvent('jubi');
 
   const TickModel = Sequelize.models.JubiTick;
   //get all coin ticks every second
-  const job1 = CronJob('0-59/5 * * * * *', async function() {
+  const tickJob = CronJob('0-59/5 * * * * *', async function() {
     console.log('collecting jubi ticks');
     const ticks = await api.getAllTicks();
     //{ coin1: {}, coin2: {}}
@@ -59,9 +60,21 @@ async function start() {
     orderEvent.emit(orders);
   }, false);
 
-  job1.start();
+  //get trends at 00:00:00
+  const doTrendJob = async function() {
+    console.log('collecting jubi trend');
+    const trends = await api.getTrands();
+
+    trendEvent.emit(trends);
+  }
+
+  const trendJob = CronJob('0-1 0 0 * * *', trendEvent, false);
+
+  tickJob.start();
+  trendJob.start();
   //job2.start();
   //job3.start();
+  await doTrendJob();
 }
 
 module.exports = {

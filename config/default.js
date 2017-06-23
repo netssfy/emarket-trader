@@ -24,6 +24,7 @@ module.exports = {
   market: {
     jubi: {
       apiServer: 'https://www.jubi.com/api/v1/',
+      webServer: 'https://www.jubi.com/',
       key: null,
       secret: null,
     }

@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const key = config.market.jubi.key;
 const secret = config.market.jubi.secret;
 const apiServer = config.market.jubi.apiServer;
+const webServer = config.market.jubi.webServer;
 
 function _sign(params) {
   params.nonce = Date.now();
@@ -46,9 +47,14 @@ async function getAllTicks() {
   return await request(apiServer + 'allticker', { method: 'post', body: params, json: true });
 }
 
+async function getTrands() {
+  return await request(webServer + 'coin/trends', { json: true });
+}
+
 module.exports = {
   getTicker,
   getDepth,
   getOrders,
-  getAllTicks
+  getAllTicks,
+  getTrands
 };
