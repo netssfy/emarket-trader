@@ -4,55 +4,68 @@ const TickEvent = require('./tick-event');
 const DepthEvent = require('./depth-event');
 const OrderEvent = require('./order-event');
 const TrendEvent = require('./trend-event');
+const ConfigEvent = require('./config-event');
 
 const TICK_EVENT_KEY = 'TICK_EVENT_KEY';
 const DEPTH_EVENT_KEY = 'DEPTH_EVENT_KEY';
 const ORDER_EVENT_KEY = 'ORDER_EVENT_KEY';
 const TREND_EVENT_KEY = 'TREND_EVENT_KEY';
+const CONFIG_EVENT_KEY = 'CONFIG_EVENT_KEY';
 
 class EventManager {
   constructor() {
     this.events = new Map();
   }
 
-  getTickEvent(coin) {
-    const key = `${TICK_EVENT_KEY}-${coin}`;
+  getTickEvent(market) {
+    const key = `${TICK_EVENT_KEY}-${market}`;
     let event = this.events.get(key);
     if (!event) {
-      event = new TickEvent(coin);
+      event = new TickEvent(market);
       this.events.set(key, event);
     }
 
     return event;
   }
 
-  getDepthEvent(coin) {
-    const key = `${DEPTH_EVENT_KEY}-${coin}`;
+  getDepthEvent(market) {
+    const key = `${DEPTH_EVENT_KEY}-${market}`;
     let event = this.events.get(key);
     if (!event) {
-      event = new DepthEvent(coin);
+      event = new DepthEvent(market);
       this.events.set(key, event);
     }
 
     return event;
   }
 
-  getOrderEvent(coin) {
-    const key = `${ORDER_EVENT_KEY}-${coin}`;
+  getOrderEvent(market) {
+    const key = `${ORDER_EVENT_KEY}-${market}`;
     let event = this.events.get(key);
     if (!event) {
-      event = new OrderEvent(coin);
+      event = new OrderEvent(market);
       this.events.set(key, event);
     }
 
     return event; 
   }
 
-  getTrendEvent(coin) {
-    const key = `${TREND_EVENT_KEY}-${coin}`;
+  getTrendEvent(market) {
+    const key = `${TREND_EVENT_KEY}-${market}`;
     let event = this.events.get(key);
     if (!event) {
-      event = new TrendEvent(coin);
+      event = new TrendEvent(market);
+      this.events.set(key, event);
+    }
+
+    return event; 
+  }
+
+  getConfigEvent(market) {
+    const key = `${CONFIG_EVENT_KEY}-${market}`;
+    let event = this.events.get(key);
+    if (!event) {
+      event = new ConfigEvent(market);
       this.events.set(key, event);
     }
 

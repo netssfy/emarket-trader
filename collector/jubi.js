@@ -32,17 +32,55 @@ async function start() {
     tickEvent.emit(newTickRows);
   }, false);
   
-  //get all coin depth every second
-  const job2 = CronJob('0-59 * * * * *', async function() {
-    console.log('collecting jubi depth');
+  const DepthModel = Sequelize.models.JubiDepth;
+  let index = 0;
+  const COLLECT_NUM = 10;
+  //get depth 5 by 5
+  const depthJob = CronJob('0-59/5 * * * * *', async function() {
+    console.log(`collecting jubi ${COLLECT_NUM} depth`);
     const awaitList = [];
-    for (let name of coinNames) {
-      awaitList.push(api.getDepth(name));
+    const nameIndice = [];
+    for (let i = 0; i < COLLECT_NUM; i++) {
+      index = (index + i) % coinNames.length;
+      let name = coinNames[index];
+      awaitList.push(api.getDepthByWeb(name).catch(err => null));
+      nameIndice.push(index);
     }
-    
-    const depthList = await Promise.all(awaitList);
-    const depth = _.zipObject(coinNames, depthList);
 
+    const depthList = await Promise.all(awaitList);
+    const newRows = [];
+
+    for (let i = 0; i < nameIndice.length; i++) {
+      let nameIndex = nameIndice[i];
+      let name = coinNames[nameIndex];
+      let depth = depthList[i];
+      if (!depth) continue;
+
+      newRows.push({
+        name: name,
+        timestamp: Date.now(),
+        asks: JSON.stringify(depth.asks),
+        bids: JSON.stringify(depth.bids)
+      });
+    }
+
+    //don't wait;
+    DepthModel.bulkCreate(newRows);
+  }, false);
+
+  const configEvent = eventManager.getConfigEvent('jubi');
+  let activeCoin = null;
+
+  configEvent.onActiveCoinChange(coin => activeCoin = coin);
+  
+  const activeDepthJob = CronJob('0-59/5 * * * * *', async function() {
+    if (!activeCoin) return;
+
+    console.log(`collecting jubi ${activeCoin} depth`);
+    const depth = await api.getDepth(activeCoin).catch(err => null);
+    if (!depth) return;
+
+    depth.name = activeCoin;
     depthEvent.emit(depth);
   }, false);
   
@@ -72,7 +110,8 @@ async function start() {
 
   tickJob.start();
   trendJob.start();
-  //job2.start();
+  depthJob.start();
+  activeDepthJob.start();
   //job3.start();
   await doTrendJob();
 }

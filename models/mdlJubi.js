@@ -24,7 +24,7 @@ module.exports = [
     name: 'JubiDepth',
     schema: {
       name: Sequelize.STRING,
-      tiemstamp: Sequelize.BIGINT(13),
+      timestamp: Sequelize.BIGINT(13),
       asks: Sequelize.TEXT,
       bids: Sequelize.TEXT
     }

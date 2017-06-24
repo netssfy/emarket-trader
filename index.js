@@ -46,6 +46,7 @@ async function initSocketServer() {
   const appConfig = config.app;
   const server = require('http').createServer();
   const aggregator = require('./aggregator/jubi');
+  const configEvent = eventManager.getConfigEvent('jubi');
 
   server.listen(appConfig.port);
 
@@ -64,6 +65,18 @@ async function initSocketServer() {
     
     trendEvent.on(data => {
       aggregator('trend', data);
+    });
+
+    const depthEvent = eventManager.getDepthEvent('jubi');
+
+    depthEvent.on(data => {
+      socket.emit('depth', data);
+    });
+
+    //receive from client
+    socket.on('active-coin-change', coin => {
+      console.log(`active coin change to ${coin}`);
+      configEvent.fireActiveCoinChange(coin);
     });
   });
 }

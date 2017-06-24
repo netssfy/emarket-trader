@@ -3,17 +3,17 @@
 const Event = require('events');
 
 class TrendEvent extends Event {
-  constructor(coin) {
+  constructor(market) {
     super();
-    this.coin = coin;
+    this.market = market;
   }
 
   emit(data) {
-    super.emit(this.coin, data);
+    super.emit(this.market, data);
   }
 
   on(cb) {
-    super.on(this.coin, cb);
+    super.on(this.market, cb);
   }
 }
 

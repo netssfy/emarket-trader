@@ -19,6 +19,10 @@ angular
   $scope.gotoDetail = function(coin) {
     $(`#tab-${coin}`).tab('show');
   };
+
+  $scope.clickTab = function(coin) {
+    $scope.socket.emit('active-coin-change', coin);
+  }
 });
 
 function realdata($scope) {
@@ -28,6 +32,11 @@ function realdata($scope) {
     //是个数组，没一行一个coin的行情
     $scope.data = data;
     processTickData($scope, $scope.data);
+    $scope.$apply();
+  });
+
+  $scope.socket.on('depth', function (data) {
+    processDepthData($scope. data);
     $scope.$apply();
   });
 }
@@ -70,6 +79,16 @@ function processTickData($scope, rows) {
         var newVal = row[key];
         tick[key] = newVal;
       }
+    }
+  }
+}
+
+function processDepthData($scope, newDepthData) {
+  if (!$scope.depthData) {
+    $scope.depthData = newDepthData;
+  } else {
+    for (var coin in newDepthData) {
+      $scope.depthData[coin] = newDepthData[coin];
     }
   }
 }
