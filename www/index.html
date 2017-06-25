@@ -37,8 +37,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="(coin, row) in ticks track by $index" ng-class="['active', 'success', 'warning', 'danger', 'info'][$index % 5]" ng-click="gotoDetail(coin)" style="cursor: pointer">
-            <td ng-repeat="(index, value) in row" data-toggle="tooltip" data-placement="bottom" title="{{getReadableName(row.name)}}">{{value}}</td>
+          <tr ng-repeat="(coin, row) in ticks track by $index" ng-class="['active', 'success', 'warning', 'danger', 'info'][$index % 5]" style="cursor: pointer">
+            <td ng-repeat="(index, value) in row track by $index" data-toggle="tooltip" data-placement="bottom" title="{{getReadableName(row.name)}}" ng-click="gotoDetail(row.name, $index)">{{value}}</td>
           </tr>
         </tbody>
       </table>

@@ -16,8 +16,11 @@ angular
     return COIN_NAME_MAPPING[coin];
   };
 
-  $scope.gotoDetail = function(coin) {
-    $(`#tab-${coin}`).tab('show');
+  $scope.gotoDetail = function(coin, $index) {
+    if ($index > 0)
+      $(`#tab-${coin}`).tab('show');
+    else
+      window.open('https://www.jubi.com/coin/' + coin);
   };
 
   $scope.clickTab = function(coin) {
