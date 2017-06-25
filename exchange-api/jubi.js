@@ -35,7 +35,7 @@ async function getDepth(coin) {
 
 async function getDepthByWeb(coin) {
   const url = `${webServer}coin/${coin}/trades`;
-  const data = JSON.parse(await request(url));
+  const data = await request(url, { json: true });
   return {
     asks: data.buy,
     bids: data.sell
@@ -47,6 +47,11 @@ async function getOrders(coin) {
   _sign(params);
 
   return await request(apiServer + 'orders', { method: 'post', body: params, json: true });
+}
+
+async function getOrdersByWeb(coin) {
+  const url = `${webServer}coin/${coin}/order`;
+  const data = await request(url, { json: true });
 }
 
 async function getAllTicks() {
@@ -65,6 +70,7 @@ module.exports = {
   getDepth,
   getDepthByWeb,
   getOrders,
+  getOrdersByWeb,
   getAllTicks,
   getTrands
 };

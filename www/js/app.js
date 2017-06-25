@@ -60,8 +60,7 @@ function mockdata($scope) {
 }
 
 function processTickData($scope, rows) {
-  if (!$scope.indice)
-    $scope.indice = Object.keys(rows[0]);
+  $scope.indice = Object.keys(rows[0]);
 
   if (!$scope.coins) {
     $scope.coins = [];

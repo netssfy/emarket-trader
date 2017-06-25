@@ -85,17 +85,42 @@ async function start() {
   }, false);
   
   //get all coin orders every second
-  const job3 = CronJob('0-59 * * * * *', async function() {
-    console.log('collecting jubi orders');
+  const OrderModel = Sequelize.models.JubiOrders;
+  let index2 = 0;
+  const orderJob = CronJob('0-59/5 * * * * *', async function() {
+    console.log(`collecting jubi ${COLLECT_NUM} orders`);
     const awaitList = [];
-    for (let name of coinNames) {
-      awaitList.push(api.getOrders(name));
+    const nameIndice = [];
+    for (let i = 0; i < COLLECT_NUM; i++) {
+      index2 = (index2 + i) % coinNames.length;
+      let name = coinNames[index2];
+      awaitList.push(api.getOrders(name).catch(err => null));
+      nameIndice.push(index2);
     }
-    
-    const ordersList = await Promise.all(awaitList);
-    const orders = _.zipObject(coinNames, ordersList);
 
-    orderEvent.emit(orders);
+    const ordersList = await Promise.all(awaitList);
+    const newRows = [];
+
+    for (let i = 0; i < nameIndice.length; i++) {
+      let nameIndex = nameIndice[i];
+      let name = coinNames[nameIndex];
+      let orders = ordersList[i];
+      if (!orders) continue;
+
+      for (let order of orders) {
+        newRows.push({
+          name: name,
+          timestamp: +order.date * 1000,
+          price: order.price,
+          amount: order.amount,
+          tid: order.tid,
+          type: order.type
+        });
+      }
+    }
+
+    //don't wait;
+    OrderModel.bulkCreate(newRows);
   }, false);
 
   //get trends at 00:00:00
@@ -112,7 +137,7 @@ async function start() {
   trendJob.start();
   depthJob.start();
   activeDepthJob.start();
-  //job3.start();
+  orderJob.start();
   await doTrendJob();
 }
 

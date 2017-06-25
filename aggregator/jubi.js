@@ -40,7 +40,7 @@ function _proccess(row) {
 //归一化价格位置%,距离24H低位的位置
 function _normalizePricePosition(high, low, x) {
   const range = high - low;
-  const pos = (x - low) / (high - low) * 100;
+  const pos = (x - low) / (high - low);
   return pos.toFixed(3);
 }
 //归一化价格方差 [0.5, 1],越低越好

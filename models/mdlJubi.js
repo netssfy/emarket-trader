@@ -32,7 +32,8 @@ module.exports = [
   {
     name: 'JubiOrders',
     schema: {
-      tid: { type: Sequelize.STRING, primaryKey: true },
+      name: Sequelize.STRING,
+      tid: Sequelize.STRING,
       timestamp: Sequelize.BIGINT(13),
       price: Sequelize.DECIMAL(20, 10),
       amount: Sequelize.DECIMAL(30, 10),
