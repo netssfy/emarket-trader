@@ -43,14 +43,19 @@
         </tbody>
       </table>
     </div>
-    <!--********************************************-->
+    <!--*********************each coin***********************-->
     <div ng-repeat="name in coins" class="tab-pane" id="{{name}}">
       <div ng-repeat="(index, value) in ticks[name] track by $index" class="tile">
         <span class="label label-primary">{{index}}</span>
         :
         <span class="label label-warning">{{value}}</span>
       </div>
+      <div style="clear: both"></div>
+      <div>
+        <button ng-click="requestOrderAmountByPrice(name)">价格量统计</button>
+      </div>
     </div>
+    <div id="chart-order-amount-by-price" style="width: 600px; height:1400px;"></div>
   </div>
 </body>
 </html>

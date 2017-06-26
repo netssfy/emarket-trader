@@ -4,6 +4,7 @@ angular
   $scope.data = [];
   $scope.ticks = {};
 
+  initChart($scope);
   realdata($scope);
   // mockdata($scope);
 
@@ -25,7 +26,11 @@ angular
 
   $scope.clickTab = function(coin) {
     $scope.socket.emit('active-coin-change', coin);
-  }
+  };
+
+  $scope.requestOrderAmountByPrice = function(coin) {
+    $scope.socket.emit('order-amount-by-price', coin);
+  };
 });
 
 function realdata($scope) {
@@ -40,6 +45,50 @@ function realdata($scope) {
 
   $scope.socket.on('depth', function (data) {
     processDepthData($scope. data);
+    $scope.$apply();
+  });
+
+  $scope.socket.on('order-amount-by-price', function(data) {
+    var chart = $scope.charts['order-amount-by-price'];
+    const y = [];
+    const x = [];
+    for (var item of data.buy) {
+      y.push(item.price);
+      x.push(item.amount);
+    }
+
+    chart.setOption({
+      tooltip: {},
+      legend: {
+        data: ['价格', '交易量']
+      },
+      xAxis: [
+        {
+          type: 'value'
+        }
+      ],
+      yAxis: [
+        {
+          type: 'category',
+          data: y
+        }
+      ],
+      series: [
+        {
+          name: '交易量',
+          type: 'bar',
+          stack: '交易量',
+          label: {
+            normal: {
+              show: true,
+              position: 'right'
+            }
+          },
+          data: x
+        }
+      ]
+    });
+
     $scope.$apply();
   });
 }
@@ -93,6 +142,11 @@ function processDepthData($scope, newDepthData) {
       $scope.depthData[coin] = newDepthData[coin];
     }
   }
+}
+
+function initChart($scope) {
+  $scope.charts = {};
+  $scope.charts['order-amount-by-price'] = echarts.init(document.getElementById('chart-order-amount-by-price'), 'vintage');
 }
 
 COIN_NAME_MAPPING = {ltc:'莱特币',skt:'鲨之信',vtc:'绿币',ifc:'无限币',tfc:'传送币',btc:'比特币',drk:'达世币',blk:'黑币',vrc:'维理币',jbc:'聚宝币',doge:'狗币',zcc:'招财币',xpm:'质数币',ppc:'点点币',wdc:'世界币',max:'最大币',zet:'泽塔币',eac:'地球币',fz:'冰河币',dnc:'暗网币',xrp:'瑞波币',nxt:'未来币',gooc:'谷壳币',plc:'保罗币',mtc:'猴宝币',qec:'企鹅链',lkc:'幸运币',met:'美通币',lsk:'LISK',ytc:'一号币',eth:'以太坊',etc:'以太经典',xas:'阿希币',hlb:'活力币',game:'游戏点',rss:'红贝壳',rio:'里约币',ktc:'肯特币',pgc:'乐园通',nhgh:'宁红柑红',ans:'小蚁股',peb:'普银',xsgs:'雪山古树',mryc:'美人鱼币',bts:'比特股'};

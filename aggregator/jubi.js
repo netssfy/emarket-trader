@@ -3,6 +3,8 @@
 const moment = require('moment');
 const _ = require('lodash');
 const eventManager = require('../events/event-manager');
+const config = require('config');
+const Sequelize = require('sequelize');
 
 let gTrends = null;
 
@@ -11,15 +13,23 @@ trendEvent.on(data => {
   gTrends = data;
 });
 
-function aggregate(type, data) {
+const mysql = config.storage.mysql;
+const dbConn = new Sequelize(mysql.database, mysql.username, mysql.password, mysql.options);
+const OrderModel = Sequelize.models.JubiOrders;
+
+async function aggregate(type, data) {
   if (type == 'tick') {
     const result = [];
     for (let row of data) {
       result.push(_proccess(row));
     }
     return result;
+  } else if (type == 'order-amount-by-price') {
+    return await _getAmountByPrice(data); 
   }
 }
+
+_getAmountByPrice('mryc');
 
 module.exports = aggregate;
 
@@ -102,4 +112,27 @@ function _last20WaveSinceNow(trend) {
   }
 
   return result;
+}
+
+//获取7日成交价格-成交量关系
+async function _getAmountByPrice(coin) {
+  const sql = 
+  `select name, price, sum(amount) as amount, count(1) as count, type from jubiorders 
+  where name = :name and createdAt < :end and createdAt > :start  
+  group by price, type`
+  let rows = await dbConn.query(sql, { 
+    model: OrderModel, 
+    replacements: {
+      name: coin,
+      start: moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss'),
+      end: moment().format('YYYY-MM-DD HH:mm:ss'),
+    }
+  });
+
+  for (let row of rows) {
+    row.amount = parseFloat(row.amount);
+    row.price = parseFloat(row.price);
+  }
+
+  return _.groupBy(rows, 'type');
 }

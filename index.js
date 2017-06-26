@@ -56,8 +56,8 @@ async function initSocketServer() {
 
     const tickEvent = eventManager.getTickEvent('jubi');
 
-    tickEvent.on(data => {
-      data = aggregator('tick', data);
+    tickEvent.on(async function(data) {
+      data = await aggregator('tick', data);
       socket.emit('ticks', data);
     });
 
@@ -72,6 +72,12 @@ async function initSocketServer() {
       console.log(`active coin change to ${coin}`);
       configEvent.fireActiveCoinChange(coin);
     });
+
+    //主动请求获取7日成交价格-成交量关系
+    socket.on('order-amount-by-price', async function(coin) {
+      const rows = await aggregator('order-amount-by-price', coin);
+      socket.emit('order-amount-by-price', rows);
+    })
   });
 }
 
