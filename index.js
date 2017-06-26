@@ -60,12 +60,6 @@ async function initSocketServer() {
       data = aggregator('tick', data);
       socket.emit('ticks', data);
     });
-    
-    const trendEvent = eventManager.getTrendEvent('jubi');
-    
-    trendEvent.on(data => {
-      aggregator('trend', data);
-    });
 
     const depthEvent = eventManager.getDepthEvent('jubi');
 

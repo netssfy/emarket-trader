@@ -120,7 +120,7 @@ async function start() {
     }
 
     //don't wait;
-    OrderModel.bulkCreate(newRows);
+    OrderModel.bulkCreate(newRows, { ignoreDuplicates: true });
   }, false);
 
   //get trends at 00:00:00
@@ -129,6 +129,7 @@ async function start() {
     const trends = await api.getTrands();
 
     trendEvent.emit(trends);
+    return trends;
   }
 
   const trendJob = CronJob('0-1 0 0 * * *', trendEvent, false);
@@ -138,7 +139,10 @@ async function start() {
   depthJob.start();
   activeDepthJob.start();
   orderJob.start();
-  await doTrendJob();
+  let trends = null;
+  do {
+    trends = await doTrendJob();
+  } while(_.isEmpty(trends));
 }
 
 module.exports = {

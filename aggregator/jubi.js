@@ -2,14 +2,17 @@
 
 const moment = require('moment');
 const _ = require('lodash');
+const eventManager = require('../events/event-manager');
 
 let gTrends = null;
 
+const trendEvent = eventManager.getTrendEvent('jubi');
+trendEvent.on(data => {
+  gTrends = data;
+});
+
 function aggregate(type, data) {
-  if (type == 'trend') {
-    gTrends = data;
-    return null;
-  } else if (type == 'tick') {
+  if (type == 'tick') {
     const result = [];
     for (let row of data) {
       result.push(_proccess(row));
@@ -24,7 +27,7 @@ function _proccess(row) {
   const result = _.pick(row, ['name', 'high', 'low', 'last', 'buy', 'sell']);
   result['时刻'] = moment(row.timestamp).format('hh:mm:ss');
   result['24H量'] = row.amount.toLocaleString();
-  result['24H额'] = row.volume.toLocaleString
+  result['24H额'] = row.volume.toLocaleString();
   result['N价格位置'] = _normalizePricePosition(row.high, row.low, row.last);
   result['N价格方差'] = _normalizeHighLowSquareError(result['N价格位置']);
   result['买卖差%'] = _diffBetweenBuySell(row.buy, row.sell);
@@ -32,6 +35,7 @@ function _proccess(row) {
   const trend = _.get(gTrends, result.name);
   if (trend) {
     result['日涨跌%'] = ((result.last - trend.yprice) / trend.yprice * 100).toFixed(2);
+    result['20%涨幅距今(天)'] = _last20WaveSinceNow(trend);
   }
 
   return result;
@@ -52,4 +56,50 @@ function _normalizeHighLowSquareError(nPos) {
 function _diffBetweenBuySell(buy, sell) {
   const val = (sell - buy) / buy * 100;
   return val.toFixed(3) + '%';
+}
+
+//最近一次日涨幅超过20%距今小时
+function _last20WaveSinceNow(trend) {
+  const list = trend.data;
+  let result = '> 3';
+  let barList = [];
+  let dayBar = null;
+  let currDate = null;
+  //将3小时bar聚合成日bar
+  for (let trend of list) {
+    let price = trend[1];
+    let time = trend[0];
+    let date = moment(time * 1000);
+    if (!currDate || date.diff(currDate, 'days') >= 1) {
+      if (dayBar) {
+        barList.push(dayBar);
+      }
+      currDate = date;
+      dayBar = {
+        high: price,
+        low: price,
+        date: date
+      };
+    } else {
+      if (price > dayBar.high)
+        dayBar.high = price;
+      if (price < dayBar.low)
+        dayBar.low = price;
+    }
+  }
+
+  if (dayBar) {
+    barList.push(dayBar);
+  }
+
+  barList = _.sortBy(barList, { date: -1 });
+
+  for (let bar of barList) {
+    if (bar.high / bar.low >= 1.2) {
+      result = ((Date.now() - bar.date.valueOf()) / 86400000).toFixed(1);
+      break;
+    }
+  }
+
+  return result;
 }
