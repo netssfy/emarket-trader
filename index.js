@@ -82,3 +82,7 @@ async function initSocketServer() {
 }
 
 main();
+
+process.on('unhandledRejection', err => {
+  console.log(err);
+})

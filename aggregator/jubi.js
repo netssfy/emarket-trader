@@ -117,9 +117,10 @@ function _last20WaveSinceNow(trend) {
 //获取7日成交价格-成交量关系
 async function _getAmountByPrice(coin) {
   const sql = 
-  `select name, price, sum(amount) as amount, count(1) as count, type from jubiorders 
-  where name = :name and createdAt < :end and createdAt > :start  
-  group by price, type`
+  `select name, price, sum(amount) as amount, count(1) as count, type from ${OrderModel.getTableName()} 
+  where name = :name and createdAt < :end and createdAt > :start 
+  group by price, type
+  order by price desc`
   let rows = await dbConn.query(sql, { 
     model: OrderModel, 
     replacements: {
@@ -133,6 +134,18 @@ async function _getAmountByPrice(coin) {
     row.amount = parseFloat(row.amount);
     row.price = parseFloat(row.price);
   }
+  //量阈值
+  const threshold = 0.2;
 
-  return _.groupBy(rows, 'type');
+  let dict = _.groupBy(rows, 'type');
+  let allAmount = _.sumBy(dict.buy, 'amount');
+  let accumulate = 0;
+
+  for (let row of dict.buy) {
+    row.amountP = row.amount / allAmount;
+  }
+
+  let buys = _.filter(dict.buy, r => r.amountP > 0.05);
+
+  return { buys };
 }

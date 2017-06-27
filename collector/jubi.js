@@ -132,7 +132,7 @@ async function start() {
     return trends;
   }
 
-  const trendJob = CronJob('0-1 0 0 * * *', trendEvent, false);
+  const trendJob = CronJob('0 0 * * * *', trendEvent, false);
 
   tickJob.start();
   trendJob.start();

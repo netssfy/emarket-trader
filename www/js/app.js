@@ -52,7 +52,8 @@ function realdata($scope) {
     var chart = $scope.charts['order-amount-by-price'];
     const y = [];
     const x = [];
-    for (var item of data.buy) {
+    let i = 0;
+    for (var item of data.buys) {
       y.push(item.price);
       x.push(item.amount);
     }
@@ -60,7 +61,7 @@ function realdata($scope) {
     chart.setOption({
       tooltip: {},
       legend: {
-        data: ['价格', '交易量']
+        data: ['买方交易量']
       },
       xAxis: [
         {
@@ -75,7 +76,7 @@ function realdata($scope) {
       ],
       series: [
         {
-          name: '交易量',
+          name: '买方交易量',
           type: 'bar',
           stack: '交易量',
           label: {
