@@ -3,6 +3,7 @@ angular
 .controller('mainCtrl', function($scope) {
   $scope.data = [];
   $scope.ticks = {};
+  $scope.days = 7;
 
   initChart($scope);
   realdata($scope);
@@ -28,8 +29,8 @@ angular
     $scope.socket.emit('active-coin-change', coin);
   };
 
-  $scope.requestOrderAmountByPrice = function(coin) {
-    $scope.socket.emit('order-amount-by-price', coin);
+  $scope.requestOrderAmountByPrice = function(coin, days) {
+    $scope.socket.emit('order-amount-by-price', { coin, days });
   };
 });
 
@@ -52,16 +53,24 @@ function realdata($scope) {
     var chart = $scope.charts['order-amount-by-price'];
     const y = [];
     const x = [];
-    let i = 0;
-    for (var item of data.buys) {
+    const avg = data.avg;
+    for (var item of data.list) {
       y.push(item.price);
       x.push(item.amount);
     }
 
     chart.setOption({
-      tooltip: {},
+      title: {
+        text: '交易量 >= ' + avg.toFixed(3)
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        }
+      },
       legend: {
-        data: ['买方交易量']
+        data: ['交易量']
       },
       xAxis: [
         {
@@ -76,13 +85,12 @@ function realdata($scope) {
       ],
       series: [
         {
-          name: '买方交易量',
+          name: '交易量',
           type: 'bar',
           stack: '交易量',
           label: {
             normal: {
-              show: true,
-              position: 'right'
+              show: true
             }
           },
           data: x

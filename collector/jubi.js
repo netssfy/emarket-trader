@@ -91,8 +91,8 @@ async function start() {
     console.log(`collecting jubi ${COLLECT_NUM} orders`);
     const awaitList = [];
     const nameIndice = [];
-    for (let i = 0; i < COLLECT_NUM; i++) {
-      index2 = (index2 + i) % coinNames.length;
+    for (let i = 0; i < COLLECT_NUM; i++, index2++) {
+      index2 = index2 % coinNames.length;
       let name = coinNames[index2];
       awaitList.push(api.getOrders(name).catch(err => null));
       nameIndice.push(index2);

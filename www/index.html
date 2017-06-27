@@ -50,12 +50,13 @@
         :
         <span class="label label-warning">{{value}}</span>
       </div>
-      <div style="clear: both"></div>
-      <div>
-        <button ng-click="requestOrderAmountByPrice(name)">价格量统计</button>
+      <div style="clear: both; height: 15px;"></div>
+      <div class="fixed-tile">
+        <button ng-click="requestOrderAmountByPrice(name, days)">价格量统计</button>
+        <input ng-model="days">距今天数</input>
       </div>
     </div>
-    <div id="chart-order-amount-by-price" style="width: 1000px; height:2400px;"></div>
+    <div id="chart-order-amount-by-price" style="width: 500px; height:2400px;"></div>
   </div>
 </body>
 </html>

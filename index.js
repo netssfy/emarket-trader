@@ -74,8 +74,8 @@ async function initSocketServer() {
     });
 
     //主动请求获取7日成交价格-成交量关系
-    socket.on('order-amount-by-price', async function(coin) {
-      const rows = await aggregator('order-amount-by-price', coin);
+    socket.on('order-amount-by-price', async function(data) {
+      const rows = await aggregator('order-amount-by-price', data);
       socket.emit('order-amount-by-price', rows);
     })
   });

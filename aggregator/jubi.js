@@ -115,7 +115,9 @@ function _last20WaveSinceNow(trend) {
 }
 
 //获取7日成交价格-成交量关系
-async function _getAmountByPrice(coin) {
+async function _getAmountByPrice(data) {
+  const coin = data.coin;
+  const days = parseInt(data.days) || 7;
   const sql = 
   `select name, price, sum(amount) as amount, count(1) as count, type from ${OrderModel.getTableName()} 
   where name = :name and createdAt < :end and createdAt > :start 
@@ -125,27 +127,23 @@ async function _getAmountByPrice(coin) {
     model: OrderModel, 
     replacements: {
       name: coin,
-      start: moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss'),
+      start: moment().subtract(days, 'days').format('YYYY-MM-DD HH:mm:ss'),
       end: moment().format('YYYY-MM-DD HH:mm:ss'),
     }
   });
 
+  let sum = 0;
+
   for (let row of rows) {
     row.amount = parseFloat(row.amount);
     row.price = parseFloat(row.price);
-  }
-  //量阈值
-  const threshold = 0.2;
-
-  let dict = _.groupBy(rows, 'type');
-  let allAmount = _.sumBy(dict.buy, 'amount');
-  let accumulate = 0;
-
-  for (let row of dict.buy) {
-    row.amountP = row.amount / allAmount;
+    sum += row.amount;
   }
 
-  let buys = _.filter(dict.buy, r => r.amountP > 0.05);
-
-  return { buys };
+  const avg = sum / rows.length;
+  
+  return {
+    list: _.filter(rows, r => r.amount >= avg),
+    avg
+  }
 }
