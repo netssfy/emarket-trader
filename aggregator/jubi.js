@@ -5,6 +5,7 @@ const _ = require('lodash');
 const eventManager = require('../events/event-manager');
 const config = require('config');
 const Sequelize = require('sequelize');
+const assert = require('assert');
 
 let gTrends = null;
 
@@ -26,6 +27,8 @@ async function aggregate(type, data) {
     return result;
   } else if (type == 'order-amount-by-price') {
     return await _getAmountByPrice(data); 
+  } else if (type == 'order-biggest-amount-percent') {
+    return await _getBiggestAmountOrders(data.coin, data.hours, data.percent);
   }
 }
 
@@ -131,7 +134,47 @@ function _lastWaveSinceNow(trend, thresholds) {
   return result;
 }
 
-//获取7日成交价格-成交量关系
+//获取指定时间内最大的成交订单
+async function _getBiggestAmountOrders(coin, hours = 24, percent = 0.3) {
+  assert(coin, 'no coin');
+  const start = moment().subtract(hours, 'hours').valueOf();
+  const end = moment().valueOf();
+  const result = await dbConn.query(
+    `select count(1) as count from ${OrderModel.getTableName()}
+    where name = :name and timestamp < :end and timestamp > :start`, {
+      replacements: {
+        name: coin,
+        start,
+        end
+      }
+    }
+  );
+
+  const limit = parseInt(percent * result[0][0].count);
+  let rows = await dbConn.query(
+    `select * from ${OrderModel.getTableName()}
+    where name = :name and timestamp < :end and timestamp > :start
+    order by amount desc
+    limit :limit`, {
+      model: OrderModel, 
+      replacements: {
+        name: coin,
+        start,
+        end,
+        limit
+      }
+    }
+  );
+
+  _.forEach(rows, r => {
+    r.price = parseFloat(r.price),
+    r.amount = parseFloat(r.amount)
+  });
+
+  return _.reverse(rows);
+}
+
+//获取指定时间内价格量
 async function _getAmountByPrice(data) {
   const coin = data.coin;
   const hours = parseInt(data.hours) || 72;

@@ -3,7 +3,6 @@ angular
 .controller('mainCtrl', function($scope) {
   $scope.data = [];
   $scope.ticks = {};
-  $scope.hours = 72;
 
   initChart($scope);
   realdata($scope);
@@ -32,6 +31,10 @@ angular
   $scope.requestOrderAmountByPrice = function(coin, hours) {
     $scope.socket.emit('order-amount-by-price', { coin, hours });
   };
+
+  $scope.requestOrderBiggestAmount = function(coin, hours, percent) {
+    $scope.socket.emit('order-biggest-amount-percent', { coin, hours, percent });
+  }
 });
 
 function realdata($scope) {
@@ -127,6 +130,88 @@ function realdata($scope) {
     };
 
     $scope.charts['chart1'].setOption(options);
+
+    $scope.$apply();
+  });
+
+  $scope.socket.on('order-biggest-amount-percent', function(data) {
+    const y = [];
+    const buyX = [];
+    const sellX = [];
+    for (var item of data) {
+      y.push(item.price);
+      if (item.type == 'buy') {
+        buyX.push(item.amount);
+        sellX.push(null);
+      } else {
+        sellX.push(item.amount);
+        buyX.push(null);
+      }
+    }
+
+    var options = {
+      title: {
+        text: '大成交量订单'
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        }
+      },
+      legend: {
+        data: ['买入量', '卖出量']
+      },
+      xAxis: [
+        {
+          type: 'value'
+        }
+      ],
+      yAxis: [
+        {
+          type: 'category',
+          data: y
+        }
+      ],
+      series: [
+        {
+          name: '买入量',
+          type: 'bar',
+          stack: '量',
+          label: {
+            normal: {
+              show: true,
+              position: 'right'
+            }
+          },
+          data: buyX,
+          itemStyle: {
+            normal: {
+              color: 'green'
+            }
+          }
+        },
+        {
+          name: '卖出量',
+          type: 'bar',
+          stack: '量',
+          label: {
+            normal: {
+              show: true,
+              position: 'right'
+            }
+          },
+          data: sellX,
+          itemStyle: {
+            normal: {
+              color: 'red'
+            }
+          }
+        }
+      ]
+    };
+
+    $scope.charts['chart2'].setOption(options);
 
     $scope.$apply();
   });

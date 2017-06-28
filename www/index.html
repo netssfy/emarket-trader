@@ -53,8 +53,13 @@
       </div>
       <div style="clear: both; height: 15px;"></div>
       <div class="fixed-tile">
-        <button ng-click="requestOrderAmountByPrice(name, hours)">价格量统计</button>
-        <input ng-model="hours">距今小时</input>
+        <button ng-click="requestOrderAmountByPrice(name, hours1)">价格量统计</button>
+        距今小时: <input ng-model="hours1" placeholder="距今小时"></input>
+      </div>
+      <div class="fixed-tile">
+        <button ng-click="requestOrderBiggestAmount(name, hours2, percent / 100)">大买单统计</button>
+        距今小时: <input ng-model="hours2" placeholder="距今小时"></input>
+        百分比[0-100]: <input ng-model="percent" placeholder="百分比[0-100]"></input>
       </div>
     </div>
     <div id="chart1" style="width: 600px; height:1400px; float: left;"></div>

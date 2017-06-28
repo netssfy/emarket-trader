@@ -77,7 +77,13 @@ async function initSocketServer() {
     socket.on('order-amount-by-price', async function(data) {
       const rows = await aggregator('order-amount-by-price', data);
       socket.emit('order-amount-by-price', rows);
-    })
+    });
+
+    //主动请求获取最大订单
+    socket.on('order-biggest-amount-percent', async function(data) {
+      const rows = await aggregator('order-biggest-amount-percent', data);
+      socket.emit('order-biggest-amount-percent', rows);
+    });
   });
 }
 
