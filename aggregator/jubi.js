@@ -120,15 +120,15 @@ async function _getAmountByPrice(data) {
   const hours = parseInt(data.hours) || 72;
   const sql = 
   `select name, price, sum(amount) as amount, count(1) as count, type from ${OrderModel.getTableName()} 
-  where name = :name and createdAt < :end and createdAt > :start 
+  where name = :name and timestamp < :end and timestamp > :start 
   group by price, type
   order by price desc`
   let rows = await dbConn.query(sql, { 
     model: OrderModel, 
     replacements: {
       name: coin,
-      start: moment().subtract(hours, 'hours').format('YYYY-MM-DD HH:mm:ss'),
-      end: moment().format('YYYY-MM-DD HH:mm:ss'),
+      start: moment().subtract(hours, 'hours').valueOf(),
+      end: moment().valueOf(),
     }
   });
 
