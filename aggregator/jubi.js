@@ -34,7 +34,7 @@ _getAmountByPrice('mryc');
 module.exports = aggregate;
 
 function _proccess(row) {
-  const result = _.pick(row, ['name', 'high', 'low', 'last', 'buy', 'sell']);
+  let result = _.pick(row, ['name', 'high', 'low', 'last', 'buy', 'sell']);
   result['时刻'] = moment(row.timestamp).format('hh:mm:ss');
   result['24H量'] = row.amount.toLocaleString();
   result['24H额'] = row.volume.toLocaleString();
@@ -59,6 +59,7 @@ function _proccess(row) {
 
   }
 
+  result = _.omit(result, ['high', 'low']);
   return result;
 }
 
@@ -149,17 +150,30 @@ async function _getAmountByPrice(data) {
   });
 
   let sum = 0;
-
+  let buySum = 0;
+  let sellSum = 0;
   for (let row of rows) {
     row.amount = parseFloat(row.amount);
     row.price = parseFloat(row.price);
     sum += row.amount;
+    if (row.type == 'buy')
+      buySum += row.amount;
+    else
+      sellSum += row.amount;
   }
 
   const avg = sum / rows.length;
-  
+  const list = _.orderBy(_.filter(rows, r => r.amount >= avg), 'amount', 'asc');
+  const buyList = _.filter(rows, r => r.type == 'buy');
+  const buyAvg = buySum / buyList.length;
+  const sellList = _.filter(rows, r => r.type == 'sell');
+  const sellAvg = sellSum / sellList.length;
   return {
-    list: _.orderBy(_.filter(rows, r => r.amount >= avg), 'amount', 'asc'),
-    avg
+    list,
+    avg,
+    buyList: _.orderBy(_.filter(buyList, r => r.amount >= buyAvg), 'amount', 'asc'),
+    buyAvg,
+    sellList: _.orderBy(_.filter(sellList, r => r.amount >= sellAvg), 'amount', 'asc'),
+    sellAvg
   }
 }

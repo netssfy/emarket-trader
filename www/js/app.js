@@ -50,18 +50,23 @@ function realdata($scope) {
   });
 
   $scope.socket.on('order-amount-by-price', function(data) {
-    var chart = $scope.charts['order-amount-by-price'];
     const y = [];
-    const x = [];
-    const avg = data.avg;
+    const buyX = [];
+    const sellX = [];
     for (var item of data.list) {
       y.push(item.price);
-      x.push(item.amount);
+      if (item.type == 'buy') {
+        buyX.push(item.amount);
+        sellX.push(null);
+      } else {
+        sellX.push(item.amount);
+        buyX.push(null);
+      }
     }
 
-    chart.setOption({
+    var options = {
       title: {
-        text: '交易量 >= ' + avg.toFixed(3)
+        text: '交易量 >= ' + data.avg.toFixed(3)
       },
       tooltip: {
         trigger: 'axis',
@@ -70,7 +75,7 @@ function realdata($scope) {
         }
       },
       legend: {
-        data: ['交易量']
+        data: ['买入量', '卖出量']
       },
       xAxis: [
         {
@@ -85,19 +90,43 @@ function realdata($scope) {
       ],
       series: [
         {
-          name: '交易量',
+          name: '买入量',
           type: 'bar',
-          stack: '交易量',
+          stack: '量',
           label: {
             normal: {
               show: true,
               position: 'right'
             }
           },
-          data: x
+          data: buyX,
+          itemStyle: {
+            normal: {
+              color: 'green'
+            }
+          }
+        },
+        {
+          name: '卖出量',
+          type: 'bar',
+          stack: '量',
+          label: {
+            normal: {
+              show: true,
+              position: 'right'
+            }
+          },
+          data: sellX,
+          itemStyle: {
+            normal: {
+              color: 'red'
+            }
+          }
         }
       ]
-    });
+    };
+
+    $scope.charts['chart1'].setOption(options);
 
     $scope.$apply();
   });
@@ -156,7 +185,68 @@ function processDepthData($scope, newDepthData) {
 
 function initChart($scope) {
   $scope.charts = {};
-  $scope.charts['order-amount-by-price'] = echarts.init(document.getElementById('chart-order-amount-by-price'), 'vintage');
+  $scope.charts['chart1'] = echarts.init(document.getElementById('chart1'), 'vintage');
+  $scope.charts['chart2'] = echarts.init(document.getElementById('chart2'), 'vintage');
+  $scope.charts['chart3'] = echarts.init(document.getElementById('chart3'), 'vintage');
+}
+
+function drawOrderAmountPriceChart(chart, title, list, avg, color) {
+  const y = [];
+  const x = [];
+  for (var item of list) {
+    y.push(item.price);
+    x.push(item.amount);
+  }
+
+  var options = {
+    title: {
+      text: title + ' >= ' + avg.toFixed(3)
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+          type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+      }
+    },
+    legend: {
+      data: [title]
+    },
+    xAxis: [
+      {
+        type: 'value'
+      }
+    ],
+    yAxis: [
+      {
+        type: 'category',
+        data: y
+      }
+    ],
+    series: [
+      {
+        name: title,
+        type: 'bar',
+        stack: title,
+        label: {
+          normal: {
+            show: true,
+            position: 'right'
+          }
+        },
+        data: x,
+      }
+    ]
+  };
+
+  if (color) {
+    options.series[0].itemStyle = {
+      normal: {
+        color
+      }
+    };
+  }
+
+  chart.setOption(options);
 }
 
 COIN_NAME_MAPPING = {ltc:'莱特币',skt:'鲨之信',vtc:'绿币',ifc:'无限币',tfc:'传送币',btc:'比特币',drk:'达世币',blk:'黑币',vrc:'维理币',jbc:'聚宝币',doge:'狗币',zcc:'招财币',xpm:'质数币',ppc:'点点币',wdc:'世界币',max:'最大币',zet:'泽塔币',eac:'地球币',fz:'冰河币',dnc:'暗网币',xrp:'瑞波币',nxt:'未来币',gooc:'谷壳币',plc:'保罗币',mtc:'猴宝币',qec:'企鹅链',lkc:'幸运币',met:'美通币',lsk:'LISK',ytc:'一号币',eth:'以太坊',etc:'以太经典',xas:'阿希币',hlb:'活力币',game:'游戏点',rss:'红贝壳',rio:'里约币',ktc:'肯特币',pgc:'乐园通',nhgh:'宁红柑红',ans:'小蚁股',peb:'普银',xsgs:'雪山古树',mryc:'美人鱼币',bts:'比特股'};

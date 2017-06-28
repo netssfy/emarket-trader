@@ -45,6 +45,7 @@
     </div>
     <!--*********************each coin***********************-->
     <div ng-repeat="name in coins" class="tab-pane" id="{{name}}">
+      <div class="tile" ng-click="gotoDetail(name, 0)">官网</div>
       <div ng-repeat="(index, value) in ticks[name] track by $index" class="tile">
         <span class="label label-primary">{{index}}</span>
         :
@@ -56,7 +57,9 @@
         <input ng-model="hours">距今小时</input>
       </div>
     </div>
-    <div id="chart-order-amount-by-price" style="width: 500px; height:2400px;"></div>
+    <div id="chart1" style="width: 600px; height:1400px; float: left;"></div>
+    <div id="chart2" style="width: 600px; height:1000px; float: left;"></div>
+    <div id="chart3" style="width: 600px; height:1000px; float: left;"></div>
   </div>
 </body>
 </html>
