@@ -3,7 +3,7 @@ angular
 .controller('mainCtrl', function($scope) {
   $scope.data = [];
   $scope.ticks = {};
-  $scope.days = 7;
+  $scope.hours = 72;
 
   initChart($scope);
   realdata($scope);
@@ -29,8 +29,8 @@ angular
     $scope.socket.emit('active-coin-change', coin);
   };
 
-  $scope.requestOrderAmountByPrice = function(coin, days) {
-    $scope.socket.emit('order-amount-by-price', { coin, days });
+  $scope.requestOrderAmountByPrice = function(coin, hours) {
+    $scope.socket.emit('order-amount-by-price', { coin, hours });
   };
 });
 

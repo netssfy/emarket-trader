@@ -117,7 +117,7 @@ function _last20WaveSinceNow(trend) {
 //获取7日成交价格-成交量关系
 async function _getAmountByPrice(data) {
   const coin = data.coin;
-  const days = parseInt(data.days) || 7;
+  const hours = parseInt(data.hours) || 72;
   const sql = 
   `select name, price, sum(amount) as amount, count(1) as count, type from ${OrderModel.getTableName()} 
   where name = :name and createdAt < :end and createdAt > :start 
@@ -127,7 +127,7 @@ async function _getAmountByPrice(data) {
     model: OrderModel, 
     replacements: {
       name: coin,
-      start: moment().subtract(days, 'days').format('YYYY-MM-DD HH:mm:ss'),
+      start: moment().subtract(hours, 'hours').format('YYYY-MM-DD HH:mm:ss'),
       end: moment().format('YYYY-MM-DD HH:mm:ss'),
     }
   });
