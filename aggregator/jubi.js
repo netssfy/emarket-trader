@@ -45,7 +45,18 @@ function _proccess(row) {
   const trend = _.get(gTrends, result.name);
   if (trend) {
     result['日涨跌%'] = ((result.last - trend.yprice) / trend.yprice * 100).toFixed(2);
-    result['20%涨幅距今(天)'] = _last20WaveSinceNow(trend);
+
+    const thresholds = {
+      '20%涨幅距今(天)': 1.2,
+      '10%涨幅距今(天)': 1.1
+    };
+
+    let waveDate = _lastWaveSinceNow(trend, thresholds);
+
+    for (let name in thresholds) {
+      result[name] = waveDate[name];
+    }
+
   }
 
   return result;
@@ -69,9 +80,8 @@ function _diffBetweenBuySell(buy, sell) {
 }
 
 //最近一次日涨幅超过20%距今小时
-function _last20WaveSinceNow(trend) {
+function _lastWaveSinceNow(trend, thresholds) {
   const list = trend.data;
-  let result = '> 3';
   let barList = [];
   let dayBar = null;
   let currDate = null;
@@ -103,11 +113,17 @@ function _last20WaveSinceNow(trend) {
   }
 
   barList = _.sortBy(barList, { date: -1 });
+  
+  const result = {};
+  for (let name in thresholds) {
+    result[name] = '> 3';
+    let threshold = thresholds[name];
 
-  for (let bar of barList) {
-    if (bar.high / bar.low >= 1.2) {
-      result = ((Date.now() - bar.date.valueOf()) / 86400000).toFixed(1);
-      break;
+    for (let bar of barList) {
+      if (bar.high / bar.low >= threshold) {
+        result[name] = ((Date.now() - bar.date.valueOf()) / 86400000).toFixed(1);
+        break;
+      }
     }
   }
 
