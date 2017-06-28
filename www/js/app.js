@@ -90,7 +90,8 @@ function realdata($scope) {
           stack: '交易量',
           label: {
             normal: {
-              show: true
+              show: true,
+              position: 'right'
             }
           },
           data: x

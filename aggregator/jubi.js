@@ -143,7 +143,7 @@ async function _getAmountByPrice(data) {
   const avg = sum / rows.length;
   
   return {
-    list: _.filter(rows, r => r.amount >= avg),
+    list: _.orderBy(_.filter(rows, r => r.amount >= avg), 'amount', 'asc'),
     avg
   }
 }
