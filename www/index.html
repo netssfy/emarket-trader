@@ -12,6 +12,7 @@
   <script src="js/moment.min.js"></script>
   <script src="js/bootstrap-sortable.js"></script>
   <script src="js/angular.min.js"></script>
+  <script src="js/angular-toastr.tpls.min.js"></script>
   <script src="js/app.js"></script>
 
   <script src="js/echarts.min.js"></script>
@@ -19,6 +20,7 @@
   <script src="js/vintage.js"></script>
 
   <link href="css/bootstrap.min.css" rel="stylesheet"></link>
+  <link href="css/angular-toastr.min.css" rel="stylesheet"></link>
   <link href="css/style.css" rel="stylesheet"></link>
   <link href="css/bootstrap-sortable.css" rel="stylesheet">
 </head>
@@ -53,13 +55,13 @@
       </div>
       <div style="clear: both; height: 15px;"></div>
       <div class="fixed-tile">
-        <button ng-click="requestOrderAmountByPrice(name, hours1)">价格量统计</button>
-        距今小时: <input ng-model="hours1" placeholder="距今小时"></input>
+        <button ng-click="requestOrderAmountByPrice(name, $parent.hours1)">价格量统计</button>
+        距今小时: <input ng-model="$parent.hours1" placeholder="距今小时"></input>
       </div>
       <div class="fixed-tile">
-        <button ng-click="requestOrderBiggestAmount(name, hours2, percent / 100)">大买单统计</button>
-        距今小时: <input ng-model="hours2" placeholder="距今小时"></input>
-        百分比[0-100]: <input ng-model="percent" placeholder="百分比[0-100]"></input>
+        <button ng-click="requestOrderBiggestAmount(name, $parent.hours2, $parent.percent / 100)">大买单统计</button>
+        距今小时: <input ng-model="$parent.hours2" placeholder="距今小时"></input>
+        百分比[0-100]: <input ng-model="$parent.percent" placeholder="百分比[0-100]"></input>
       </div>
     </div>
     <div id="chart1" style="width: 600px; height:1400px; float: left;"></div>

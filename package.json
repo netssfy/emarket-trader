@@ -22,6 +22,7 @@
   "homepage": "https://github.com/netssfy/jubi-monitor#readme",
   "dependencies": {
     "angular": "^1.6.4",
+    "angular-toastr": "^2.1.1",
     "bootstrap": "^3.3.7",
     "config": "^1.26.1",
     "jquery": "^3.2.1",

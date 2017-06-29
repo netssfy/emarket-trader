@@ -5,8 +5,14 @@ const CronJob = require('node-cron').schedule;
 const _ = require('lodash');
 const eventManager = require('../events/event-manager');
 const Sequelize = require('sequelize');
+const moment = require('moment');
+const config = require('config');
 
-async function start() {
+const mysql = config.storage.mysql;
+const dbConn = new Sequelize(mysql.database, mysql.username, mysql.password, mysql.options);
+const OrderModel = Sequelize.models.JubiOrders;
+
+async function start() {  
   //get all ticks for available coin names
   const allTicks = await api.getAllTicks();
   const coinNames = _.keys(allTicks);
@@ -14,6 +20,7 @@ async function start() {
   const depthEvent = eventManager.getDepthEvent('jubi');
   const orderEvent = eventManager.getOrderEvent('jubi');
   const trendEvent = eventManager.getTrendEvent('jubi');
+  const notificationEvent = eventManager.getNotificationEvent('jubi');
 
   const TickModel = Sequelize.models.JubiTick;
   //get all coin ticks every second
@@ -134,11 +141,26 @@ async function start() {
 
   const trendJob = CronJob('0 0 * * * *', trendEvent, false);
 
+  const _28Job = CronJob('0-59/30 * * * * *', async function() {
+    console.log('collecting 28 BigOrders');
+
+    const awaitList = [];
+    for (let coin of coinNames) {
+      awaitList.push(_28principle(coin, 2));
+    }
+
+    const resultList = await Promise.all(awaitList);
+    const result = _.zipObject(coinNames, resultList);
+
+    notificationEvent.emit('28BigOrders', result);
+  }, false);
+
   tickJob.start();
   trendJob.start();
   depthJob.start();
   activeDepthJob.start();
   orderJob.start();
+  _28Job.start();
   let trends = null;
   do {
     trends = await doTrendJob();
@@ -163,4 +185,40 @@ function _createRowFromJSON(coin, tick) {
   }
 
   return row;
+}
+
+//二八原则
+async function _28principle(coin, hours) {
+  const start = moment().subtract(hours, 'hours').valueOf();
+  const end = moment().valueOf();
+
+  let result = await dbConn.query(
+    `select sum(amount) as amount,count(1) as count from ${OrderModel.getTableName()}
+    where name = :name and timestamp < :end and timestamp > :start`, {
+      replacements: {
+        name: coin,
+        start,
+        end
+      }
+    }
+  );
+
+  const limit = parseInt(0.2 * result[0][0].count);
+  const totalAmount = result[0][0].amount;
+
+  result = await dbConn.query(
+    `select sum(amount) as amount from (
+      select amount from ${OrderModel.getTableName()} where name = :name and timestamp < :end and timestamp > :start order by amount desc limit :limit
+    ) as t`, {
+      replacements: {
+        name: coin,
+        start,
+        end,
+        limit
+      }
+    }
+  );
+
+  const _20Amount = result[0][0].amount;
+  return _20Amount / totalAmount > 0.8;
 }

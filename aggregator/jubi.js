@@ -6,6 +6,7 @@ const eventManager = require('../events/event-manager');
 const config = require('config');
 const Sequelize = require('sequelize');
 const assert = require('assert');
+const CronJob = require('node-cron').schedule;
 
 let gTrends = null;
 

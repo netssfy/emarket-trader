@@ -1,8 +1,19 @@
 angular
-.module('app', [])
-.controller('mainCtrl', function($scope) {
+.module('app', ['toastr'])
+.config(function(toastrConfig) {
+  angular.extend(toastrConfig, {
+    preventOpenDuplicates: true,
+    tapToDismiss: true,
+    timeOut: 86400000
+  });
+})
+.controller('mainCtrl', function($scope, toastr) {
+  $scope.toastr = toastr;
   $scope.data = [];
   $scope.ticks = {};
+  $scope.hours1 = 8;
+  $scope.hours2 = 8;
+  $scope.percent = 10;
 
   initChart($scope);
   realdata($scope);
@@ -49,6 +60,16 @@ function realdata($scope) {
 
   $scope.socket.on('depth', function (data) {
     processDepthData($scope. data);
+    $scope.$apply();
+  });
+
+  $scope.socket.on('28BigOrders', function (data) {
+    for (var coin in data) {
+      var result = data[coin];
+      if (result) {
+        $scope.toastr.error(`${coin} 出现28订单现象`);
+      }
+    }
     $scope.$apply();
   });
 

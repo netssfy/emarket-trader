@@ -67,6 +67,11 @@ async function initSocketServer() {
       socket.emit('depth', data);
     });
 
+    const notificationEvent = eventManager.getNotificationEvent('jubi');
+    notificationEvent.on('28BigOrders', data => {
+      socket.emit('28BigOrders', data);
+    });
+
     //receive from client
     socket.on('active-coin-change', coin => {
       console.log(`active coin change to ${coin}`);
