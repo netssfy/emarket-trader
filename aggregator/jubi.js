@@ -101,11 +101,11 @@ function _lastWaveSinceNow(trend, thresholds) {
       if (dayBar) {
         barList.push(dayBar);
       }
-      currDate = date;
+      currDate = date.startOf('date');
       dayBar = {
         high: price,
         low: price,
-        date: date
+        date: currDate
       };
     } else {
       if (price > dayBar.high)
@@ -119,7 +119,7 @@ function _lastWaveSinceNow(trend, thresholds) {
     barList.push(dayBar);
   }
 
-  barList = _.sortBy(barList, { date: -1 });
+  barList = _.sortBy(barList, bar => -bar.date.valueOf());
   
   const result = {};
   for (let name in thresholds) {
