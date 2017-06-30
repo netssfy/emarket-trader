@@ -318,10 +318,18 @@ function realdata($scope) {
           return d.getHours() + ':' + d.getMinutes();
         })
       },
-      yAxis: {
-        type: 'value',
-        scale: true
-      },
+      yAxis:[
+        {
+          type: 'value',
+          name: '加权价格',
+          scale: true
+        },
+        {
+          type: 'value',
+          name: '成交量',
+          scale: true
+        }
+      ],
       series: [
         {
           name: '5分钟加权价格',
@@ -335,6 +343,11 @@ function realdata($scope) {
           name: '30分钟加权价格',
           type: 'line',
           data: y30p
+        }, {
+          name: '成交量',
+          type: 'bar',
+          data: y5a,
+          yAxisIndex: 1
         }
       ]
     };
