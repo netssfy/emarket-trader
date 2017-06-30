@@ -89,6 +89,12 @@ async function initSocketServer() {
       const rows = await aggregator('order-biggest-amount-percent', data);
       socket.emit('order-biggest-amount-percent', rows);
     });
+
+    //主动请求bars
+    socket.on('bars-within-hours', async function(data) {
+      const result = await aggregator('bars-within-hours', data);
+      socket.emit('bars-within-hours', result);
+    })
   });
 }
 

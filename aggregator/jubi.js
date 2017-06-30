@@ -30,6 +30,8 @@ async function aggregate(type, data) {
     return await _getAmountByPrice(data); 
   } else if (type == 'order-biggest-amount-percent') {
     return await _getBiggestAmountOrders(data.coin, data.hours, data.percent);
+  } else if (type == 'bars-within-hours') {
+    return await _getBarsWithInXHours(data.coin, data.hours)
   }
 }
 
@@ -183,7 +185,7 @@ async function _getAmountByPrice(data) {
   `select name, price, sum(amount) as amount, count(1) as count, type from ${OrderModel.getTableName()} 
   where name = :name and timestamp < :end and timestamp > :start 
   group by price, type
-  order by price desc`
+  order by price desc`;
   let rows = await dbConn.query(sql, { 
     model: OrderModel, 
     replacements: {
@@ -220,4 +222,87 @@ async function _getAmountByPrice(data) {
     sellList: _.orderBy(_.filter(sellList, r => r.amount >= sellAvg), 'amount', 'asc'),
     sellAvg
   }
+}
+
+//获取X小时内,5分钟,10分钟,30分钟bar
+async function _getBarsWithInXHours(coin, hours) {
+  const end = moment().valueOf();
+  const start = moment().subtract(hours, 'hours').valueOf();
+  const sql = 
+  `select * from ${OrderModel.getTableName()}
+  where name = :name and timestamp < :end and timestamp > :start
+  order by timestamp asc`;
+
+  let rows = await dbConn.query(sql, {
+    model: OrderModel,
+    replacements: {
+      name: coin,
+      start,
+      end
+    }
+  });
+
+  const _5bars = {};
+  const _10bars = {};
+  const _30bars = {};
+  let _5bar, _10bar, _30bar = null;
+
+  for (let row of rows) {
+    row.price = parseFloat(row.price);
+    row.amount = parseFloat(row.amount);
+    
+    let slot = parseInt(row.timestamp / (5 * 60 * 1000));
+    _5bar = _5bars[slot];
+    if (!_5bar) {
+      _5bar = {
+        amount: row.amount,
+        volume: row.price * row.amount,
+        price: row.price,
+        timestamp: row.timestamp
+      }
+      _5bars[slot] = _5bar;
+    } else {
+      _5bar.amount += row.amount;
+      _5bar.volume += row.price * row.amount;
+      _5bar.price = _5bar.volume / _5bar.amount;
+    }
+
+    slot = parseInt(row.timestamp / (10 * 60 * 1000));
+    _10bar = _10bars[slot];
+    if (!_10bar) {
+      _10bar = {
+        amount: row.amount,
+        volume: row.price * row.amount,
+        price: row.price,
+        timestamp: row.timestamp
+      }
+      _10bars[slot] = _10bar;
+    } else {
+      _10bar.amount += row.amount;
+      _10bar.volume += row.price * row.amount;
+      _10bar.price = _10bar.volume / _10bar.amount;
+    }
+
+    slot = parseInt(row.timestamp / (30 * 60 * 1000));
+    _30bar = _30bars[slot];
+    if (!_30bar) {
+      _30bar = {
+        amount: row.amount,
+        volume: row.price * row.amount,
+        price: row.price,
+        timestamp: row.timestamp
+      }
+      _30bars[slot] = _30bar;
+    } else {
+      _30bar.amount += row.amount;
+      _30bar.volume += row.price * row.amount;
+      _30bar.price = _30bar.volume / _30bar.amount;
+    }
+  }
+
+  return {
+    '5bars': _.values(_5bars),
+    '10bars': _.values(_10bars),
+    '30bars': _.values(_30bars),
+  };
 }

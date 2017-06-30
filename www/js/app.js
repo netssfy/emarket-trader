@@ -11,9 +11,14 @@ angular
   $scope.toastr = toastr;
   $scope.data = [];
   $scope.ticks = {};
-  $scope.hours1 = 8;
-  $scope.hours2 = 8;
+  $scope.hours1 = 2;
+  $scope.hours2 = 2;
+  $scope.hours3 = 2;
   $scope.percent = 10;
+  $scope.displayChart1 = false;
+  $scope.displayChart2 = false;
+  $scope.displayChart3 = false;
+  $scope.displayChart4 = false;
 
   initChart($scope);
   realdata($scope);
@@ -45,6 +50,10 @@ angular
 
   $scope.requestOrderBiggestAmount = function(coin, hours, percent) {
     $scope.socket.emit('order-biggest-amount-percent', { coin, hours, percent });
+  };
+
+  $scope.requestBarsWithHours = function(coin, hours) {
+    $scope.socket.emit('bars-within-hours', { coin, hours });
   }
 });
 
@@ -150,6 +159,9 @@ function realdata($scope) {
       ]
     };
 
+    if (!$scope.displayChart1)
+      $scope.displayChart1 = true;
+
     $scope.charts['chart1'].setOption(options);
 
     $scope.$apply();
@@ -232,8 +244,105 @@ function realdata($scope) {
       ]
     };
 
+    if (!$scope.displayChart2)
+      $scope.displayChart2 = true;
+
     $scope.charts['chart2'].setOption(options);
 
+    $scope.$apply();
+  });
+
+  $scope.socket.on('bars-within-hours', function(data) {
+    var x = data['5bars'].map(function(bar) {
+      return bar.timestamp;
+    });
+    var y5p = data['5bars'].map(function (bar) {
+      return bar.price;
+    });
+    var y5a = data['5bars'].map(function (bar) {
+      return bar.amount;
+    });
+
+    var y10p = [];
+    var y30p = []
+    var bIndex10 = 0;
+    var bIndex30 = 0;
+    
+    for (var tIndex = 0; tIndex < x.length; tIndex++) {
+      var t = x[tIndex];
+      var pushed10 = false;
+      do {
+        var bar10 = data['10bars'][bIndex10];
+        if (!bar10) {
+          break;
+        }
+        if (bar10.timestamp <= t && bar10.timestamp + 10 * 60 * 1000 > t) {
+          y10p.push(bar10.price);
+          pushed10 = true;
+        } else {
+          bIndex10++;
+        }
+      } while(!pushed10);
+
+      var pushed30 = false;
+      do {
+        var bar30 = data['30bars'][bIndex30];
+        if (!bar30) {
+          break;
+        }
+        if (bar30.timestamp <= t && bar30.timestamp + 30 * 60 * 1000 > t) {
+          y30p.push(bar30.price);
+          pushed30 = true;
+        } else {
+          bIndex30++;
+        }
+      } while(!pushed30);
+    }
+    
+    var options = {
+      legend: {
+        data: ['5分钟加权价格', '10分钟加权价格', '30分钟加权价格']
+      },
+      title: {
+        text: '短周期加权价格走势图'
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+          type : 'cross'        // 默认为直线，可选为：'line' | 'shadow'  
+        }
+      },
+      xAxis: {
+        data: x.map(function(t) {
+          var d = new Date(t);
+          return d.getHours() + ':' + d.getMinutes();
+        })
+      },
+      yAxis: {
+        type: 'value',
+        scale: true
+      },
+      series: [
+        {
+          name: '5分钟加权价格',
+          type: 'line',
+          data: y5p
+        }, {
+          name: '10分钟加权价格',
+          type: 'line',
+          data: y10p
+        }, {
+          name: '30分钟加权价格',
+          type: 'line',
+          data: y30p
+        }
+      ]
+    };
+
+    if (!$scope.displayChart4)
+      $scope.displayChart4 = true;
+
+    $scope.charts['chart4'].setOption(options);
     $scope.$apply();
   });
 }
@@ -264,6 +373,7 @@ function processTickData($scope, rows) {
     for (var row of rows) {
       $scope.coins.push(row.name);
     }
+    $scope.coins = $scope.coins.sort();
   }
 
   for (var row of rows) {
@@ -294,6 +404,7 @@ function initChart($scope) {
   $scope.charts['chart1'] = echarts.init(document.getElementById('chart1'), 'vintage');
   $scope.charts['chart2'] = echarts.init(document.getElementById('chart2'), 'vintage');
   $scope.charts['chart3'] = echarts.init(document.getElementById('chart3'), 'vintage');
+  $scope.charts['chart4'] = echarts.init(document.getElementById('chart4'), 'vintage');
 }
 
 function drawOrderAmountPriceChart(chart, title, list, avg, color) {

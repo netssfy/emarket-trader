@@ -63,10 +63,15 @@
         距今小时: <input ng-model="$parent.hours2" placeholder="距今小时"></input>
         百分比[0-100]: <input ng-model="$parent.percent" placeholder="百分比[0-100]"></input>
       </div>
+      <div class="fixed-tile">
+        <button ng-click="requestBarsWithHours(name, $parent.hours3)">短周期bars</button>
+        距今小时: <input ng-model="$parent.hours3" placeholder="距今小时"></input>
+      </div>
     </div>
-    <div id="chart1" style="width: 600px; height:1400px; float: left;"></div>
-    <div id="chart2" style="width: 600px; height:1000px; float: left;"></div>
-    <div id="chart3" style="width: 600px; height:1000px; float: left;"></div>
+    <div id="chart1" ng-show="displayChart1" style="width: 600px; height:1000px; float: left;"></div>
+    <div id="chart2" ng-show="displayChart2" style="width: 600px; height:1000px; float: left;"></div>
+    <div id="chart3" ng-show="displayChart3" style="width: 600px; height:1000px; float: left;"></div>
+    <div id="chart4" ng-show="displayChart4" style="width: 1000px; height:600px; float: left;"></div>
   </div>
 </body>
 </html>
