@@ -72,6 +72,10 @@ async function initSocketServer() {
       socket.emit('28BigOrders', data);
     });
 
+    notificationEvent.on('54wave', data => {
+      socket.emit('54wave', data);
+    })
+
     //receive from client
     socket.on('active-coin-change', coin => {
       console.log(`active coin change to ${coin}`);

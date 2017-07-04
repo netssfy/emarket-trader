@@ -155,12 +155,22 @@ async function start() {
     notificationEvent.emit('28BigOrders', result);
   }, false);
 
+  const _waveJob = CronJob('0-59/5 * * * * *', async function() {
+    console.log('collecting wave trend');
+
+    
+    const data = await wave(5);
+    const result = _.filter(data, row => row.wave >= 1.04);
+    notificationEvent.emit('54wave', result);
+  }, false);
+
   tickJob.start();
   trendJob.start();
   depthJob.start();
   activeDepthJob.start();
   orderJob.start();
   _28Job.start();
+  _waveJob.start();
   let trends = null;
   do {
     trends = await doTrendJob();
@@ -221,4 +231,21 @@ async function _28principle(coin, hours) {
 
   const _20Amount = result[0][0].amount;
   return _20Amount / totalAmount > 0.8;
+}
+
+//X时间内价格涨幅
+async function wave(minAgo) {
+  const start = moment().subtract(minAgo, 'minutes').valueOf();
+
+  let result = await dbConn.query(
+    `select name, max(price) as max, min(price) as min, max(price)/min(price) as wave, count(amount) as amount
+    from ${OrderModel.getTableName()} 
+    where timestamp >= :start group by name`, {
+      replacements: {
+        start
+      }
+    }
+  );
+
+  return result[0];
 }

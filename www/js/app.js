@@ -42,6 +42,10 @@ angular
 
   $scope.clickTab = function(coin) {
     $scope.socket.emit('active-coin-change', coin);
+    if (!$scope.displayChart3)
+      $scope.displayChart3 = true;
+
+    drawHistoryVolume($scope.charts['chart3'], $scope.ticks[coin].history100);
   };
 
   $scope.requestOrderAmountByPrice = function(coin, hours) {
@@ -78,6 +82,13 @@ function realdata($scope) {
       if (result) {
         $scope.toastr.error(`${coin} 出现28订单现象`);
       }
+    }
+    $scope.$apply();
+  });
+
+  $scope.socket.on('54wave', function (data) {
+    for (var row of data) {
+      $scope.toastr.info(`${row.name} 5分钟内涨幅超过${((row.wave - 1) * 100).toFixed(2)}%`);
     }
     $scope.$apply();
   });
@@ -393,11 +404,15 @@ function processTickData($scope, rows) {
     var tick = $scope.ticks[row.name];
     if (!tick) {
       $scope.ticks[row.name] = row;
+      $scope.ticks[row.name].history100 = [row];
     } else {
       for (var key in row) {
         var newVal = row[key];
         tick[key] = newVal;
       }
+      if (tick.history100.length == 100)
+        tick.history100.shift();
+      tick.history100.push(row);
     }
   }
 }
@@ -418,6 +433,44 @@ function initChart($scope) {
   $scope.charts['chart2'] = echarts.init(document.getElementById('chart2'), 'vintage');
   $scope.charts['chart3'] = echarts.init(document.getElementById('chart3'), 'vintage');
   $scope.charts['chart4'] = echarts.init(document.getElementById('chart4'), 'vintage');
+}
+
+function drawHistoryVolume(chart, history) {
+  const data = [];
+  for (var row of history) {
+    data.push([row.timestamp, row.volume]);
+  }
+
+  var options = {
+    title: {
+      text: '动态交易额折线'
+    },
+    tooltip: {
+      trigger: 'axis',
+      formatter: function(params) {
+        params = params[0];
+        var date = new Date(params.timestamp);
+        return date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+      }
+    },
+    xAxis: {
+      type: 'time',
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { show: false }
+    },
+    series: [{
+        name: '交易量变化',
+        type: 'line',
+        showSymbol: false,
+        hoverAnimation: false,
+        data: data
+    }]
+  };
+  
+  chart.setOption(options);
 }
 
 function drawOrderAmountPriceChart(chart, title, list, avg, color) {
