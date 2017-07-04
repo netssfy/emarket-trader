@@ -4,7 +4,8 @@
   "description": "jubi monitor",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "online": "http-server www & pm2 start index.js --name emarket-trader"
   },
   "repository": {
     "type": "git",
