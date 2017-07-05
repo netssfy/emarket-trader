@@ -158,9 +158,8 @@ async function start() {
   const _waveJob = CronJob('0-59/5 * * * * *', async function() {
     console.log('collecting wave trend');
 
-    
     const data = await wave(5);
-    const result = _.filter(data, row => row.wave >= 1.04);
+    const result = _.filter(data, row => Math.abs(row.wave) >= 1.04);
     notificationEvent.emit('54wave', result);
   }, false);
 
@@ -237,15 +236,38 @@ async function _28principle(coin, hours) {
 async function wave(minAgo) {
   const start = moment().subtract(minAgo, 'minutes').valueOf();
 
-  let result = await dbConn.query(
-    `select name, max(price) as max, min(price) as min, max(price)/min(price) as wave, count(amount) as amount
-    from ${OrderModel.getTableName()} 
-    where timestamp >= :start group by name`, {
+  let rows = await dbConn.query(
+    `select name, price, timestamp from ${OrderModel.getTableName()}
+    where timestamp >= :start
+    `, {
+      model: OrderModel, 
       replacements: {
-        start
+        start,
       }
     }
   );
 
-  return result[0];
+  const dict = _.groupBy(rows, 'name');
+  const result = [];
+  for (let name in dict) {
+    rows = dict[name];
+    let max = 0;
+    let min = Number.MAX_VALUE;
+    let maxt = null;
+    let mint = null;
+    for (let row of rows) {
+      if (row.price > max) {
+        max = parseFloat(row.price);
+        maxt = row.timestamp;
+      }
+      if (row.price < min) {
+        min = parseFloat(row.price);
+        mint = row.timestamp;
+      }
+    }
+
+    result.push({ name, min, max, mint, maxt, wave: (max / min) * (maxt > mint ? 1 : -1) });
+  }
+
+  return result;
 }

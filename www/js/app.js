@@ -65,7 +65,7 @@ angular
 });
 
 function realdata($scope) {
-  $scope.socket = io('http://localhost:1699');
+  $scope.socket = io(`${window.location.protocol}//${window.location.hostname}:1699`);
 
   $scope.socket.on('ticks', function (data) {
     //是个数组，没一行一个coin的行情
@@ -95,7 +95,10 @@ function realdata($scope) {
 
   $scope.socket.on('54wave', function (data) {
     for (var row of data) {
-      $scope.toastr.info(`${row.name} 5分钟内振幅超过${((row.wave - 1) * 100).toFixed(2)}%`);
+      if (row.wave > 0)
+        $scope.toastr.info(`${row.name} 5分钟内涨幅达到${((row.wave - 1) * 100).toFixed(2)}%`);
+      else
+        $scope.toastr.warning(`${row.name} 5分钟内跌幅达到${(-(row.wave + 1) * 100).toFixed(2)}%`);
     }
     $scope.$apply();
   });
