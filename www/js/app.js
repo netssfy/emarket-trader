@@ -11,6 +11,7 @@ angular
   $scope.toastr = toastr;
   $scope.data = [];
   $scope.ticks = {};
+  $scope.historyTicks = {};
   $scope.hours1 = 2;
   $scope.hours2 = 2;
   $scope.hours3 = 2;
@@ -19,6 +20,7 @@ angular
   $scope.displayChart2 = false;
   $scope.displayChart3 = false;
   $scope.displayChart4 = false;
+  $scope.activeCoin = null;
 
   initChart($scope);
   realdata($scope);
@@ -45,7 +47,8 @@ angular
     if (!$scope.displayChart3)
       $scope.displayChart3 = true;
 
-    drawHistoryVolume($scope.charts['chart3'], $scope.ticks[coin].history100);
+    $scope.activeCoin = coin;
+    drawHistoryVolume($scope.charts['chart3'], $scope.historyTicks[coin]);
   };
 
   $scope.requestOrderAmountByPrice = function(coin, hours) {
@@ -68,6 +71,10 @@ function realdata($scope) {
     //是个数组，没一行一个coin的行情
     $scope.data = data;
     processTickData($scope, $scope.data);
+
+    if ($scope.displayChart3)
+      drawHistoryVolume($scope.charts['chart3'], $scope.historyTicks[$scope.activeCoin]);
+    
     $scope.$apply();
   });
 
@@ -88,7 +95,7 @@ function realdata($scope) {
 
   $scope.socket.on('54wave', function (data) {
     for (var row of data) {
-      $scope.toastr.info(`${row.name} 5分钟内涨幅超过${((row.wave - 1) * 100).toFixed(2)}%`);
+      $scope.toastr.info(`${row.name} 5分钟内振幅超过${((row.wave - 1) * 100).toFixed(2)}%`);
     }
     $scope.$apply();
   });
@@ -404,15 +411,30 @@ function processTickData($scope, rows) {
     var tick = $scope.ticks[row.name];
     if (!tick) {
       $scope.ticks[row.name] = row;
-      $scope.ticks[row.name].history100 = [row];
+      $scope.historyTicks[row.name] = [{
+        last: row.last,
+        buy: row.buy,
+        sell: row.sell,
+        timestamp: row['时刻'],
+        volume: parseFloat(row['24H额'].replace(/,/g, '')),
+        amount: parseFloat(row['24H量'].replace(/,/g, ''))
+      }];
     } else {
       for (var key in row) {
         var newVal = row[key];
         tick[key] = newVal;
       }
-      if (tick.history100.length == 100)
-        tick.history100.shift();
-      tick.history100.push(row);
+
+      if ($scope.historyTicks[row.name].length == 100)
+        $scope.historyTicks[row.name].shift();
+      $scope.historyTicks[row.name].push({
+        last: row.last,
+        buy: row.buy,
+        sell: row.sell,
+        timestamp: row['时刻'],
+        volume: parseFloat(row['24H额'].replace(/,/g, '')),
+        amount: parseFloat(row['24H量'].replace(/,/g, ''))
+      });
     }
   }
 }
@@ -437,8 +459,12 @@ function initChart($scope) {
 
 function drawHistoryVolume(chart, history) {
   const data = [];
+  const y = [];
+  const x = [];
   for (var row of history) {
-    data.push([row.timestamp, row.volume]);
+    // data.push([row.timestamp, row.volume]);
+    y.push(row.volume);
+    x.push(row.timestamp);
   }
 
   var options = {
@@ -446,27 +472,22 @@ function drawHistoryVolume(chart, history) {
       text: '动态交易额折线'
     },
     tooltip: {
-      trigger: 'axis',
-      formatter: function(params) {
-        params = params[0];
-        var date = new Date(params.timestamp);
-        return date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
-      }
+      trigger: 'axis'
     },
     xAxis: {
-      type: 'time',
-      splitLine: { show: false }
+      data: x
     },
     yAxis: {
       type: 'value',
-      splitLine: { show: false }
+      splitLine: { show: false },
+      scale: true
     },
     series: [{
         name: '交易量变化',
         type: 'line',
         showSymbol: false,
         hoverAnimation: false,
-        data: data
+        data: y
     }]
   };
   
