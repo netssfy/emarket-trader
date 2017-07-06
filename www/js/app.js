@@ -4,7 +4,7 @@ angular
   angular.extend(toastrConfig, {
     preventOpenDuplicates: true,
     tapToDismiss: true,
-    timeOut: 86400000,
+    timeOut: 60000,
     positionClass: 'toast-bottom-right'
   });
 })
