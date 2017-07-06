@@ -4,7 +4,8 @@ angular
   angular.extend(toastrConfig, {
     preventOpenDuplicates: true,
     tapToDismiss: true,
-    timeOut: 86400000
+    timeOut: 86400000,
+    positionClass: 'toast-bottom-right'
   });
 })
 .controller('mainCtrl', function($scope, toastr) {
