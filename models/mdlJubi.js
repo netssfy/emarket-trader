@@ -39,5 +39,18 @@ module.exports = [
       amount: Sequelize.DECIMAL(30, 10),
       type: Sequelize.STRING
     }
+  },
+  {
+    name: 'JubiMinuteBars',
+    schema: {
+      name: { type: Sequelize.STRING, unique: 'name_timestamp' },
+      timestamp: { type: Sequelize.BIGINT(13), unique: 'name_timestamp' },
+      open: Sequelize.DECIMAL(20, 10),
+      close: Sequelize.DECIMAL(20, 10),
+      high: Sequelize.DECIMAL(20, 10),
+      low: Sequelize.DECIMAL(20, 10),
+      volume: Sequelize.DECIMAL(20, 10),
+      amount: Sequelize.DECIMAL(30, 10),
+    }
   }
 ];

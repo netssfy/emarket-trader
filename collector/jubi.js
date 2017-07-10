@@ -11,6 +11,7 @@ const config = require('config');
 const mysql = config.storage.mysql;
 const dbConn = new Sequelize(mysql.database, mysql.username, mysql.password, mysql.options);
 const OrderModel = Sequelize.models.JubiOrders;
+const MinBarModel = Sequelize.models.JubiMinuteBars;
 
 async function start() {  
   //get all ticks for available coin names
@@ -163,6 +164,92 @@ async function start() {
     notificationEvent.emit('54wave', result);
   }, false);
 
+  //分钟bar聚合
+  async function doCreateMinBarJob() {
+    console.log('create min bar');
+    //找出上一次处理的bar的时间, 如果不存在默认值就是0
+    let result = await dbConn.query(
+      `select max(timestamp) as timestamp from ${MinBarModel.getTableName()}`
+    );
+
+    let latestT = result[0][0].timestamp ? result[0][0].timestamp : 0;
+    //找最早那个未处理的时间点
+    result = await dbConn.query(
+      `select min(timestamp) as timestamp from ${OrderModel.getTableName()}
+       where timestamp > ${latestT}`
+    );
+    latestT = result[0][0].timestamp ? result[0][0].timestamp : latestT;
+    const start = latestT;
+    const end = start + 3600000;
+
+    const orders = await dbConn.query(
+      `select * from ${OrderModel.getTableName()}
+       where timestamp >= :start and timestamp < :end 
+       order by timestamp asc`, {
+        replacements: {
+          start,
+          end
+        },
+        model: OrderModel
+      }
+    );
+
+    if (!_.isEmpty(orders)) {
+      let barDict = {};
+      const newBars = [];
+      let ct = orders[0].timestamp;
+      ct = parseInt(ct / 60000) * 60000;//这一分钟的开始
+      for (let order of orders) {
+        let tom = parseInt(order.timestamp / 60000) * 60000;
+        let price = parseFloat(order.price);
+        let amount = parseFloat(order.amount);
+        
+        if (tom == ct) {
+          //在这一分钟内
+          let bar = barDict[order.name];
+          if (!bar) {
+            bar = barDict[order.name] = {};
+            bar.open = price;
+            bar.volume = 0;
+            bar.amount = 0;
+            bar.name = order.name;
+          }
+          bar.timestamp = tom;
+          bar.high = _.max([bar.high, price]);
+          bar.low = _.min([bar.low, price]);
+          bar.close= price;
+          bar.amount += amount;
+          bar.volume += amount * price; 
+        } else if (tom > ct) {
+          //上一分钟结束了，将聚合的bar存到数组中
+          let bar = null;
+          for (let name in barDict) {
+            bar = barDict[name];
+            newBars.push(bar);
+          }
+          barDict = {};
+          ct = tom;
+          //处理这个order
+          bar = barDict[order.name] = {};
+          bar.name = order.name;
+          bar.open = price;
+          bar.timestamp = tom;
+          bar.high = _.max([bar.high, price]);
+          bar.low = _.min([bar.low, price]);
+          bar.close= price;
+          bar.amount = amount;
+          bar.volume = amount * price; 
+        } else {
+          console.log('tom should not less than t');
+        }
+      }
+
+      //等待不等待都一样，但是这里还是写等待了，万一后面再加逻辑就不会错
+      await MinBarModel.bulkCreate(newBars);
+    }
+  }
+  const _createMinBarJob = CronJob('5 0-59 * * * *', doCreateMinBarJob, false);
+
   tickJob.start();
   trendJob.start();
   depthJob.start();
@@ -170,10 +257,14 @@ async function start() {
   orderJob.start();
   _28Job.start();
   _waveJob.start();
+  _createMinBarJob.start();
+
   let trends = null;
   do {
     trends = await doTrendJob();
   } while(_.isEmpty(trends));
+
+  await doCreateMinBarJob();
 }
 
 module.exports = {

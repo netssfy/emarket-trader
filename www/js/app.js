@@ -98,8 +98,8 @@ function realdata($scope) {
     for (var row of data) {
       if (row.wave > 0)
         $scope.toastr.info(`${row.name} 5分钟内涨幅达到${((row.wave - 1) * 100).toFixed(2)}%`);
-      else
-        $scope.toastr.warning(`${row.name} 5分钟内跌幅达到${(-(row.wave + 1) * 100).toFixed(2)}%`);
+      // else
+      //   $scope.toastr.warning(`${row.name} 5分钟内跌幅达到${(-(row.wave + 1) * 100).toFixed(2)}%`);
     }
     $scope.$apply();
   });
