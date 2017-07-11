@@ -6,6 +6,7 @@ const OrderEvent = require('./order-event');
 const TrendEvent = require('./trend-event');
 const ConfigEvent = require('./config-event');
 const NotificationEvent = require('./notification-event');
+const BarEvent = require('./bar-event');
 
 const TICK_EVENT_KEY = 'TICK_EVENT_KEY';
 const DEPTH_EVENT_KEY = 'DEPTH_EVENT_KEY';
@@ -13,6 +14,7 @@ const ORDER_EVENT_KEY = 'ORDER_EVENT_KEY';
 const TREND_EVENT_KEY = 'TREND_EVENT_KEY';
 const CONFIG_EVENT_KEY = 'CONFIG_EVENT_KEY';
 const NOTIFICATION_EVENT_KEY = 'NOTIFICAITON_EVENT_KEY';
+const BAR_EVENT_KEY = 'BAR_EVENT_KEY';
 
 class EventManager {
   constructor() {
@@ -79,6 +81,17 @@ class EventManager {
     let event = this.events.get(key);
     if (!event) {
       event = new NotificationEvent(market);
+      this.events.set(key, event);
+    }
+
+    return event; 
+  }
+
+  getBarEvent(market) {
+    const key = `${BAR_EVENT_KEY}-${market}`;
+    let event = this.events.get(key);
+    if (!event) {
+      event = new BarEvent(market);
       this.events.set(key, event);
     }
 

@@ -74,6 +74,11 @@ async function initSocketServer() {
 
     notificationEvent.on('54wave', data => {
       socket.emit('54wave', data);
+    });
+
+    const barEvent = eventManager.getBarEvent('jubi');
+    barEvent.onMintueBars(data => {
+      socket.emit('8hoursMinuteBars', data);
     })
 
     //receive from client
