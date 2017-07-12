@@ -45,11 +45,11 @@ angular
 
   $scope.clickTab = function(coin) {
     $scope.socket.emit('active-coin-change', coin);
-    if (!$scope.displayChart3)
-      $scope.displayChart3 = true;
+    if (!$scope.displayChart4)
+      $scope.displayChart4 = true;
 
     $scope.activeCoin = coin;
-    drawHistoryVolume($scope.charts['chart3'], $scope.historyTicks[coin]);
+    drawHistoryVolume($scope.charts['chart4'], $scope.historyTicks[coin]);
   };
 
   $scope.requestOrderAmountByPrice = function(coin, hours) {
@@ -73,8 +73,8 @@ function realdata($scope) {
     $scope.data = data;
     processTickData($scope, $scope.data);
 
-    if ($scope.displayChart3)
-      drawHistoryVolume($scope.charts['chart3'], $scope.historyTicks[$scope.activeCoin]);
+    if ($scope.displayChart4)
+      drawHistoryVolume($scope.charts['chart4'], $scope.historyTicks[$scope.activeCoin]);
     
     $scope.$apply();
   });
@@ -274,110 +274,382 @@ function realdata($scope) {
     $scope.$apply();
   });
 
-  $scope.socket.on('bars-within-hours', function(data) {
-    var x = data['5bars'].map(function(bar) {
-      return bar.timestamp;
-    });
-    var y5p = data['5bars'].map(function (bar) {
-      return bar.price;
-    });
-    var y5a = data['5bars'].map(function (bar) {
-      return bar.amount;
-    });
+  // $scope.socket.on('bars-within-hours', function(data) {
+  //   var x = data['5bars'].map(function(bar) {
+  //     return bar.timestamp;
+  //   });
+  //   var y5p = data['5bars'].map(function (bar) {
+  //     return bar.price;
+  //   });
+  //   var y5a = data['5bars'].map(function (bar) {
+  //     return bar.amount;
+  //   });
 
-    var y10p = [];
-    var y30p = []
-    var bIndex10 = 0;
-    var bIndex30 = 0;
+  //   var y10p = [];
+  //   var y30p = []
+  //   var bIndex10 = 0;
+  //   var bIndex30 = 0;
     
-    for (var tIndex = 0; tIndex < x.length; tIndex++) {
-      var t = x[tIndex];
-      var pushed10 = false;
-      do {
-        var bar10 = data['10bars'][bIndex10];
-        if (!bar10) {
-          break;
-        }
-        if (bar10.timestamp <= t && bar10.timestamp + 10 * 60 * 1000 > t) {
-          y10p.push(bar10.price);
-          pushed10 = true;
-        } else {
-          bIndex10++;
-        }
-      } while(!pushed10);
+  //   for (var tIndex = 0; tIndex < x.length; tIndex++) {
+  //     var t = x[tIndex];
+  //     var pushed10 = false;
+  //     do {
+  //       var bar10 = data['10bars'][bIndex10];
+  //       if (!bar10) {
+  //         break;
+  //       }
+  //       if (bar10.timestamp <= t && bar10.timestamp + 10 * 60 * 1000 > t) {
+  //         y10p.push(bar10.price);
+  //         pushed10 = true;
+  //       } else {
+  //         bIndex10++;
+  //       }
+  //     } while(!pushed10);
 
-      var pushed30 = false;
-      do {
-        var bar30 = data['30bars'][bIndex30];
-        if (!bar30) {
-          break;
-        }
-        if (bar30.timestamp <= t && bar30.timestamp + 30 * 60 * 1000 > t) {
-          y30p.push(bar30.price);
-          pushed30 = true;
-        } else {
-          bIndex30++;
-        }
-      } while(!pushed30);
+  //     var pushed30 = false;
+  //     do {
+  //       var bar30 = data['30bars'][bIndex30];
+  //       if (!bar30) {
+  //         break;
+  //       }
+  //       if (bar30.timestamp <= t && bar30.timestamp + 30 * 60 * 1000 > t) {
+  //         y30p.push(bar30.price);
+  //         pushed30 = true;
+  //       } else {
+  //         bIndex30++;
+  //       }
+  //     } while(!pushed30);
+  //   }
+    
+  //   var options = {
+  //     legend: {
+  //       data: ['5分钟加权价格', '10分钟加权价格', '30分钟加权价格']
+  //     },
+  //     title: {
+  //       text: '短周期加权价格走势图'
+  //     },
+  //     tooltip: {
+  //       trigger: 'axis',
+  //       axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+  //         type : 'cross'        // 默认为直线，可选为：'line' | 'shadow'  
+  //       }
+  //     },
+  //     xAxis: {
+  //       data: x.map(function(t) {
+  //         var d = new Date(t);
+  //         return d.getHours() + ':' + d.getMinutes();
+  //       })
+  //     },
+  //     yAxis:[
+  //       {
+  //         type: 'value',
+  //         name: '加权价格',
+  //         scale: true
+  //       },
+  //       {
+  //         type: 'value',
+  //         name: '成交量',
+  //         scale: true
+  //       }
+  //     ],
+  //     series: [
+  //       {
+  //         name: '5分钟加权价格',
+  //         type: 'line',
+  //         data: y5p
+  //       }, {
+  //         name: '10分钟加权价格',
+  //         type: 'line',
+  //         data: y10p
+  //       }, {
+  //         name: '30分钟加权价格',
+  //         type: 'line',
+  //         data: y30p
+  //       }, {
+  //         name: '成交量',
+  //         type: 'bar',
+  //         data: y5a,
+  //         yAxisIndex: 1
+  //       }
+  //     ]
+  //   };
+
+  //   if (!$scope.displayChart4)
+  //     $scope.displayChart4 = true;
+
+  //   $scope.charts['chart4'].setOption(options);
+  //   $scope.$apply();
+  // });
+
+  $scope.socket.on('8hoursMinuteBars', function(bars) {
+    //填充空的bar,并做类型转换
+    var i = 0;
+    var currentT = bars[i].timestamp;
+    var endT = bars[bars.length - 1].timestamp;
+    var currentBar = bars[i];
+    var prevBar = bars[i];
+
+    var dataX = [];
+    var dataYBar = [];
+    var dataYVolume = [];
+
+    while (currentT <= endT) {
+      if (currentT == currentBar.timestamp) {
+        dataYBar.push([
+          parseFloat(currentBar.open),
+          parseFloat(currentBar.close),
+          parseFloat(currentBar.low),
+          parseFloat(currentBar.high)
+        ]);
+        dataYVolume.push(parseFloat(currentBar.volume));
+        //移动到下一个
+        prevBar = currentBar;
+        currentBar = bars[++i];
+      } else {
+        //这个时间点没有bar，则使用prevBar填充
+        dataYBar.push([
+          parseFloat(prevBar.open),
+          parseFloat(prevBar.close),
+          parseFloat(prevBar.low),
+          parseFloat(prevBar.high)
+        ]);
+        dataYVolume.push(parseFloat(prevBar.volume));
+      }
+
+      var d = new Date(currentT)
+      dataX.push(d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes());
+      //移动到下一分钟
+      currentT += 60000;
     }
-    
-    var options = {
+
+    function calculateMA(dayCount, bars) {
+      var result = [];
+      for (var i = 0, len = bars.length; i < len; i++) {
+        if (i < dayCount) {
+          result.push('-');
+          continue;
+        }
+        var sum = 0;
+        for (var j = 0; j < dayCount; j++) {
+          sum += bars[i - j][1];
+        }
+        result.push(+(sum / dayCount).toFixed(3));
+      }
+      return result;
+    }
+
+    var initOptions = {
+      backgroundColor: '#eee',
+      animation: false,
       legend: {
-        data: ['5分钟加权价格', '10分钟加权价格', '30分钟加权价格']
-      },
-      title: {
-        text: '短周期加权价格走势图'
+        bottom: 10,
+        left: 'center',
+        data: ['min bar', 'MA5', 'MA10']
       },
       tooltip: {
         trigger: 'axis',
-        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
-          type : 'cross'        // 默认为直线，可选为：'line' | 'shadow'  
+        axisPointer: {
+          type: 'cross'
+        },
+        backgroundColor: 'rgba(245, 245, 245, 0.8)',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
+        textStyle: {
+          color: '#000'
+        },
+        position: function (pos, params, el, elRect, size) {
+          var obj = {top: 10};
+          obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+          return obj;
+        },
+        extraCssText: 'width: 170px'
+      },
+      axisPointer: {
+        link: {xAxisIndex: 'all'},
+        label: {
+          backgroundColor: '#777'
         }
       },
-      xAxis: {
-        data: x.map(function(t) {
-          var d = new Date(t);
-          return d.getHours() + ':' + d.getMinutes();
-        })
+      toolbox: {
+        feature: {
+          dataZoom: {
+            yAxisIndex: false
+          },
+          brush: {
+            type: ['lineX', 'clear']
+          }
+        }
       },
-      yAxis:[
+      brush: {
+        xAxisIndex: 'all',
+        brushLink: 'all',
+        outOfBrush: {
+          colorAlpha: 0.1
+        }
+      },
+      grid: [
         {
-          type: 'value',
-          name: '加权价格',
-          scale: true
+          left: '10%',
+          right: '8%',
+          height: '50%'
         },
         {
-          type: 'value',
-          name: '成交量',
-          scale: true
+          left: '10%',
+          right: '8%',
+          top: '63%',
+          height: '16%'
+        }
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          data: dataX,
+          scale: true,
+          boundaryGap : false,
+          axisLine: {onZero: false},
+          splitLine: {show: false},
+          splitNumber: 20,
+          min: 'dataMin',
+          max: 'dataMax',
+          axisPointer: {
+            z: 100
+          }
+        },
+        {
+            type: 'category',
+            gridIndex: 1,
+            data: dataX,
+            scale: true,
+            boundaryGap : false,
+            axisLine: {onZero: false},
+            axisTick: {show: false},
+            splitLine: {show: false},
+            axisLabel: {show: false},
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax',
+            axisPointer: {
+              label: {
+                formatter: function (params) {
+                  var seriesValue = (params.seriesData[0] || {}).value;
+                  return params.value
+                  + (seriesValue != null
+                      ? '\n' + echarts.format.addCommas(seriesValue)
+                      : ''
+                  );
+                }
+              }
+            }
+        }
+      ],
+      yAxis: [
+        {
+          scale: true,
+          splitArea: {
+            show: true
+          }
+        },
+        {
+          scale: true,
+          gridIndex: 1,
+          splitNumber: 2,
+          axisLabel: {show: false},
+          axisLine: {show: false},
+          axisTick: {show: false},
+          splitLine: {show: false}
+        }
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: [0, 1],
+          start: 70,
+          end: 100
+        },
+        {
+          show: true,
+          xAxisIndex: [0, 1],
+          type: 'slider',
+          top: '85%',
+          start: 70,
+          end: 100
         }
       ],
       series: [
         {
-          name: '5分钟加权价格',
+          name: 'min bar',
+          type: 'candlestick',
+          data: dataYBar,
+          itemStyle: {
+            normal: {
+              borderColor: null,
+              borderColor0: null
+            }
+          },
+          tooltip: {
+            formatter: function (param) {
+              param = param[0];
+              return [
+                  'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+                  'Open: ' + param.data[0] + '<br/>',
+                  'Close: ' + param.data[1] + '<br/>',
+                  'Lowest: ' + param.data[2] + '<br/>',
+                  'Highest: ' + param.data[3] + '<br/>'
+              ].join('');
+            }
+          }
+        },
+        {
+          name: 'MA5',
           type: 'line',
-          data: y5p
-        }, {
-          name: '10分钟加权价格',
+          data: calculateMA(5, dataYBar),
+          smooth: true,
+          lineStyle: {
+            normal: {opacity: 0.5}
+          }
+        },
+        {
+          name: 'MA10',
           type: 'line',
-          data: y10p
-        }, {
-          name: '30分钟加权价格',
-          type: 'line',
-          data: y30p
-        }, {
-          name: '成交量',
+          data: calculateMA(10, dataYBar),
+          smooth: true,
+          lineStyle: {
+            normal: {opacity: 0.5}
+          }
+        },
+        {
+          name: 'Volumn',
           type: 'bar',
-          data: y5a,
-          yAxisIndex: 1
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: dataYVolume
         }
       ]
-    };
+    }
 
-    if (!$scope.displayChart4)
-      $scope.displayChart4 = true;
-
-    $scope.charts['chart4'].setOption(options);
+    if (!$scope.displayChart3) {
+      $scope.displayChart3 = true;
+      $scope.charts['chart3'].setOption(initOptions);
+    } else {
+      $scope.charts['chart3'].setOption({
+        series: [
+          {
+            data: dataYBar,
+          },
+          {
+            data: calculateMA(5, dataYBar),
+          },
+          {
+            data: calculateMA(10, dataYBar),
+          },
+          {
+            data: dataYVolume
+          }
+        ]
+      });
+    }
+    
     $scope.$apply();
   });
 }

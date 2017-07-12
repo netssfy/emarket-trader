@@ -197,9 +197,9 @@ async function start() {
       }
     );
 
+    const newBars = [];
     if (!_.isEmpty(orders)) {
       let barDict = {};
-      const newBars = [];
       for (let order of orders) {
         let price = parseFloat(order.price);
         let amount = parseFloat(order.amount);
@@ -224,11 +224,12 @@ async function start() {
       await MinBarModel.bulkCreate(newBars);
     }
 
-    return start;
+    return newBars;
   }
   const _createMinBarJob = CronJob('5 * * * * *', doCreateMinBarJob, false);
 
   const _fetch8HoursMinBarJob = CronJob('0,5 * * * * *', async function() {
+    console.log('fetch 8hours min bar');
     if (activeCoin) {
       const start = Date.now() - 8 * 3600 * 1000;
       const rows = await dbConn.query(
@@ -237,7 +238,7 @@ async function start() {
           model: MinBarModel,
           replacements: {
             start,
-            name
+            name: activeCoin
           }
         }
       );
@@ -251,13 +252,11 @@ async function start() {
     trends = await doTrendJob();
   } while(_.isEmpty(trends));
 
-  let lastT = 0;
-  let nowT = parseInt(Date.now() / 60000) * 60000;
+  let bars = [];
   do {
-    lastT = await doCreateMinBarJob();
-  } while(nowT - lastT > 60000)
+    bars = await doCreateMinBarJob();
+  } while(bars.length > 0)
   
-
   tickJob.start();
   trendJob.start();
   depthJob.start();
@@ -266,6 +265,7 @@ async function start() {
   _28Job.start();
   _waveJob.start();
   _createMinBarJob.start();
+  _fetch8HoursMinBarJob.start();
 }
 
 module.exports = {
