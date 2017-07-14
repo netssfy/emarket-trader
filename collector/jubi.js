@@ -128,8 +128,7 @@ async function start() {
       }
     }
 
-    //don't wait;
-    OrderModel.bulkCreate(newRows, { ignoreDuplicates: true });
+    await OrderModel.bulkCreate(newRows, { ignoreDuplicates: true });
   }, false);
 
   //get trends at 00:00:00
@@ -226,9 +225,9 @@ async function start() {
 
     return newBars;
   }
-  const _createMinBarJob = CronJob('5 * * * * *', doCreateMinBarJob, false);
+  const _createMinBarJob = CronJob('0-59/5 * * * * *', doCreateMinBarJob, false);
 
-  const _fetch8HoursMinBarJob = CronJob('0,5 * * * * *', async function() {
+  const _fetch8HoursMinBarJob = CronJob('0-59/30 * * * * *', async function() {
     console.log('fetch 8hours min bar');
     if (activeCoin) {
       const start = Date.now() - 8 * 3600 * 1000;
@@ -259,10 +258,10 @@ async function start() {
   
   tickJob.start();
   trendJob.start();
-  depthJob.start();
-  activeDepthJob.start();
+  //depthJob.start();
+  // activeDepthJob.start();
   orderJob.start();
-  _28Job.start();
+  //_28Job.start();
   _waveJob.start();
   _createMinBarJob.start();
   _fetch8HoursMinBarJob.start();

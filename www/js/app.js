@@ -633,6 +633,14 @@ function realdata($scope) {
       $scope.charts['chart3'].setOption(initOptions);
     } else {
       $scope.charts['chart3'].setOption({
+        xAxis: [
+          {
+            data: dataX
+          },
+          {
+            data: dataX
+          }
+        ],
         series: [
           {
             data: dataYBar,
